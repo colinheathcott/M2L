@@ -7,10 +7,10 @@
 #define GROWTH_FACTOR 2
 #define NULL_LIST (List) {0}
 
-// MARK: List_Result
+// MARK: ListResult
 /* Used to represent the result of some operation on a list.
  */
-typedef enum List_Result {
+typedef enum ListResult {
     /* Successful, no issues. */
     LIST_RES_OK  = 0,
     /* Successful, however the list was reallocated in the process. */
@@ -21,7 +21,7 @@ typedef enum List_Result {
     LIST_RES_OVERFLOW,
     /* Not successful, error with allocating the memory. */
     LIST_RES_ERR,
-} List_Result;
+} ListResult;
 
 // MARK: List
 /* Abstraction over an arena allocator backed growable list/vector. Uses `void*`
@@ -32,7 +32,7 @@ typedef enum List_Result {
  * this is always `i + 1`.
  * - `size` the size of each element in the list.
  * 
- * `List` uses the `List_Result` enum for many functions.
+ * `List` uses the `ListResult` enum for many functions.
  * `List` takes pointers when appending, but will copy the actual bytes--items
  * have the same lifetime as the list itself, even if the original data you
  * appended is freed.
@@ -49,28 +49,28 @@ typedef struct List {
  * - `size` cannot be zero!
  * Will fail only if either of the two prior invariants are violated, or if
  * there is an error with `malloc`, in which case the `List` will be `NULL`.
- * Remember to use `List_Is_Valid` after creating a list!
+ * Remember to use `ListIsValid` after creating a list!
  */
-List List_New(size_t size, size_t capacity);
+List ListNew(size_t size, size_t capacity);
 
 /* Used to fetch the `i` th element from a list. This will return the memory 
  * address of that item. Always check for `NULL`.
  */
-void *List_Get(const List *self, size_t i);
+void *ListGet(const List *self, size_t i);
 
 /* Used to push a new element to the list. This may grow the list. It can also
  * fail in the case of overflow or `realloc` error. Always check the result
  * against `LIST_RESULT_OK` or `LIST_RESULT_REALLOCATED`.
  */
-List_Result List_Push(List *self, void *item);
+ListResult ListPush(List *self, void *item);
 
 /* Frees the list and poisons it by making it `NULL`.
  */
-List_Result List_Free(List *self);
+ListResult ListFree(List *self);
 
 /* Checks if a list is valid, including checks for the actual pointer itself,
  * the data pointer, the size, and the capacity.
  */
-bool List_Is_Valid(const List *self);
+bool ListIsValid(const List *self);
 
 #endif

@@ -5,18 +5,22 @@
 
 #define NULL_SUBSTRING (Substring) { .data = NULL, .length = 0 }
 
-// MARK: Span
-/* Used to represent some amount of bytes in the original source code.
- * `offset` and `length` quantities are measured in bytes.
- * - `x` is the user-facing column number (nonzero).
- * - `y` is the user-facing line number (nonzero).
+// MARK: Source
+/* Contains the information for a single translation unit's source code,
+ * including the source code in bytes, the path name, and the size of the
+ * source code.
+ *
+ * Sources made from a static string (like for testing) have `NULL` path.
  */
-typedef struct Span {
-    const size_t offset;
+typedef struct Source {
+    const char * data;
+    const char * path;
     const size_t length;
-    const size_t x;
-    const size_t y;
-} Span;
+} Source;
+
+/* Creates a new source from the provided static string.
+ */
+Source SourceNewFromData(const char *data);
 
 // MARK: Substring
 /* A helper struct for storing substrings of source code. These are non-owning!
@@ -38,29 +42,34 @@ typedef struct Substring {
  * - `length == 0`
  * - `data == NULL`
  */
-bool Substring_Is_Null(const Substring *str);
+bool SubstringIsNull(const Substring *str);
 
-// MARK: Source
-/* Contains the information for a single translation unit's source code,
- * including the source code in bytes, the path name, and the size of the
- * source code.
- *
- * Sources made from a static string (like for testing) have `NULL` path.
+/* Compares a `Substring` with another `Substring`.
  */
-typedef struct Source {
-    const char * data;
-    const char * path;
+bool SubstringCmpString(Substring *a, const char *b);
+
+/* Compares a `Substring` with a `const char *`.
+ */
+bool SubstringCmpSubstring(Substring *a, Substring *b);
+
+// MARK: Span
+/* Used to represent some amount of bytes in the original source code.
+ * `offset` and `length` quantities are measured in bytes.
+ * - `x` is the user-facing column number (nonzero).
+ * - `y` is the user-facing line number (nonzero).
+ */
+typedef struct Span {
+    const Source *src;
+    const size_t offset;
     const size_t length;
-} Source;
-
-/* Creates a new source from the provided static string.
- */
-Source Source_New_From_Data(const char *data);
+    const size_t x;
+    const size_t y;
+} Span;
 
 /* Returns a `Substring` of the bytes pointed to by `span`. Will return 
  * `NULL_SUBSTRING` if there is out of bounds access or null arguments.
- * Use `Substring_Is_Null()` to confirm.
+ * Use `SubstringIsNull()` to confirm.
  */
-Substring Source_Substring(const Source *src, const Span *span);
+Substring SpanSubstring(const Span *span);
 
 #endif

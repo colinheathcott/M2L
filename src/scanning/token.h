@@ -3,7 +3,7 @@
 
 #include "../utils/source.h"
 
-typedef enum Token_Kind {
+typedef enum TokenKind {
     TK_EOF = 0,
     TK_EOL,
 
@@ -23,7 +23,7 @@ typedef enum Token_Kind {
     TK_AND, TK_AND_AND, TK_BAR, TK_BAR_BAR,
 
     /* Misc Operators */
-    TK_DOT, TK_COMMA, TK_COLON, TK_SEMICOLON,
+    TK_DOT, TK_COMMA, TK_COLON, TK_SEMICOLON, TK_ARROW,
 
     /* Literals */
     TK_STRING, TK_INT, TK_FLOAT, TK_SYMBOL,
@@ -31,11 +31,11 @@ typedef enum Token_Kind {
     /* Keywords */
     TK_LET, TK_MUT, TK_FUNC, TK_TYPE, TK_IF, TK_ELSE,
     TK_FOR, TK_IN, TK_WHILE
-} Token_Kind;
+} TokenKind;
 
 typedef struct Token {
-    const Token_Kind kind;
-    const Span       span;
+    const TokenKind kind;
+    const Span      span;
 } Token;
 
 #endif

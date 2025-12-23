@@ -7,7 +7,7 @@
 #error GROWTH_FACTOR <= 1 will create infinite realloc loop!
 #endif
 
-static inline bool mul_will_overflow_sizet(size_t cap, size_t size) {
+static inline bool mulWillOverflowSizet(size_t cap, size_t size) {
     return cap > SIZE_MAX / size;
 }
 
@@ -15,10 +15,10 @@ static inline bool mul_will_overflow_sizet(size_t cap, size_t size) {
 // MARK: Implementation
 // -------------------------------------------------------------------------- //
 
-List List_New(size_t size, size_t capacity) {
+List ListNew(size_t size, size_t capacity) {
     // Make sure the sizes and capacities are valid
     if (capacity == 0 || size == 0
-        || mul_will_overflow_sizet(capacity, size))
+        || mulWillOverflowSizet(capacity, size))
     {
         return NULL_LIST;
     }
@@ -35,39 +35,39 @@ List List_New(size_t size, size_t capacity) {
     };
 }
 
-void *List_Get(const List *self, size_t i) {
-    if (!List_Is_Valid(self) || i >= self->count)
+void *ListGet(const List *self, size_t i) {
+    if (!ListIsValid(self) || i >= self->count)
         return NULL;
     return (char *)self->data + (i * self->size);
 }
 
-List_Result List_Push(List *self, void *item) {
-    if (!List_Is_Valid(self) || item == NULL)
+ListResult ListPush(List *self, void *item) {
+    if (!ListIsValid(self) || item == NULL)
         return LIST_RES_NULLPTR;
-    List_Result res = LIST_RES_OK;
+    ListResult res = LIST_RES_OK;
     
     //
     // Grow (if needed)
     //
     if (self->count >= self->capacity) {
         // Check for overflow
-        if (mul_will_overflow_sizet(self->capacity, GROWTH_FACTOR))
+        if (mulWillOverflowSizet(self->capacity, GROWTH_FACTOR))
             return LIST_RES_OVERFLOW;
 
         // Update the capacity and realloc
-        size_t new_capacity = self->capacity * GROWTH_FACTOR;
+        size_t newCapacity = self->capacity * GROWTH_FACTOR;
         
         // Check for overflow again
-        if (mul_will_overflow_sizet(new_capacity, self->size))
+        if (mulWillOverflowSizet(newCapacity, self->size))
             return LIST_RES_OVERFLOW;
 
         // Reallocate
-        void *new_data = realloc(self->data, new_capacity * self->size);
+        void *newData = realloc(self->data, newCapacity * self->size);
         
         // Check for errors with the allocation and update the List
-        if (!new_data) return LIST_RES_ERR;
-        self->data     = new_data;
-        self->capacity = new_capacity;
+        if (!newData) return LIST_RES_ERR;
+        self->data     = newData;
+        self->capacity = newCapacity;
         res = LIST_RES_REALLOC;
     }
 
@@ -82,15 +82,15 @@ List_Result List_Push(List *self, void *item) {
     return res;
 }
 
-bool List_Is_Valid(const List *self) {
+bool ListIsValid(const List *self) {
     return self
         && self->data != NULL
         && self->capacity > 0
         && self->size > 0;
 }
 
-List_Result List_Free(List *self) {
-    if (!List_Is_Valid(self))
+ListResult ListFree(List *self) {
+    if (!ListIsValid(self))
         return LIST_RES_NULLPTR;
     free(self->data);
     *self = NULL_LIST;

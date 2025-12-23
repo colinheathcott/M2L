@@ -3,10 +3,29 @@
 #define STATIC_PATH_NAME "<static_data>"
 
 // -------------------------------------------------------------------------- //
+// MARK: Span
+// -------------------------------------------------------------------------- //
+
+Substring SpanSubstring(const Span *span) {
+    if (!span || !span->src ) return NULL_SUBSTRING;
+
+    // Check if the span is in bounds and return NULL if not.
+    if (span->offset > span->src->length
+        || span->offset + span->length > span->src->length)
+        return NULL_SUBSTRING;
+    
+    const char *startptr = span->src->data + span->offset;
+    return (Substring) {
+        .data = startptr,
+        .length = span->length
+    };
+}
+
+// -------------------------------------------------------------------------- //
 // MARK: Source
 // -------------------------------------------------------------------------- //
 
-Source Source_New_From_Data(const char *data) {
+Source SourceNewFromData(const char *data) {
     return (Source) {
         .data = data,
         .path = STATIC_PATH_NAME,
@@ -14,7 +33,7 @@ Source Source_New_From_Data(const char *data) {
     };
 }
 
-bool Substring_Is_Null(const Substring *str) {
+bool SubstringIsNull(const Substring *str) {
     return str == NULL || str->length == 0 || str->data == NULL;
 }
 
@@ -22,16 +41,33 @@ bool Substring_Is_Null(const Substring *str) {
 // MARK: Substring
 // -------------------------------------------------------------------------- //
 
-Substring Source_Substring(const Source *src, const Span *span) {
-    if (!src || !span) return NULL_SUBSTRING;
-
-    // Check if the span is in bounds and return NULL if not.
-    if (span->offset > src->length || span->offset + span->length > src->length)
-        return NULL_SUBSTRING;
+bool SubstringCmpSubstring(Substring *a, Substring *b) {
+    if (SubstringIsNull(a) || SubstringIsNull(b))
+        return false;
     
-    const char *startptr = src->data + span->offset;
-    return (Substring) {
-        .data = startptr,
-        .length = span->length
-    };
+    // First check length
+    if (a->length != b->length)
+        return false;
+
+    // Check each character
+    for (size_t i = 0; i < b->length; i++)
+        if (a->data[i] != b->data[i]) return false;
+
+    return true;
+}
+
+bool SubstringCmpString(Substring *a, const char *b) {
+    if (SubstringIsNull(a) || b == NULL)
+        return false;
+
+    // First check length
+    const size_t blen = strlen(b);
+    if (a->length != blen)
+        return false;
+
+    // Check each character
+    for (size_t i = 0; i < blen; i++)
+        if (a->data[i] != b[i]) return false;
+
+    return true;
 }

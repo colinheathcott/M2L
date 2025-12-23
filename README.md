@@ -17,7 +17,7 @@
 
 - [ ] Token
     - [x] Token kinds
-    - [ ] Pretty printing
+    - [ ] ~~Pretty printing~~
 - [ ] Scanning
     - [ ] Operators
     - [ ] String literals
@@ -26,3 +26,12 @@
     - [ ] Integers
     - [ ] Floats
     - [ ] Keywords
+
+## Diagnostics
+
+- [ ] Diagnostic
+    - [x] Issues
+    - [x] Levels
+    - [x] Reports
+    - [ ] Pretty printing
+- [x] Diagnostic buffer

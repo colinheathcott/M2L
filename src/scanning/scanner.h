@@ -11,10 +11,11 @@ typedef struct Scanner {
     size_t x;
     size_t y;
     size_t offset;
-    List token_list;
+    List tokenList;
 } Scanner;
 
-Scanner Scanner_New(const Source *src);
-void Scanner_Destroy(Scanner *self);
+Scanner ScannerNew(const Source *src);
+List ScannerScanSource(Scanner *self);
+void ScannerDestroy(Scanner *self);
 
 #endif
