@@ -14,6 +14,10 @@ extern bool USE_ANSI_FMT_SEQUENCES;
 #define ANSI_COLOR_CYAN    (USE_ANSI_FMT_SEQUENCES ? "\033[36m" : "")
 #define ANSI_STYLE_BOLD    (USE_ANSI_FMT_SEQUENCES ? "\033[1m"  : "")
 #define ANSI_STYLE_ITALIC  (USE_ANSI_FMT_SEQUENCES ? "\033[3m"  : "")
+#define ANSI_BG_RED        (USE_ANSI_FMT_SEQUENCES ? "\033[37;41m"  : "")
+#define ANSI_BG_YELLOW     (USE_ANSI_FMT_SEQUENCES ? "\033[37;43m"  : "")
+#define ANSI_BG_BLUE       (USE_ANSI_FMT_SEQUENCES ? "\033[37;44m"  : "")
+#define COLORIZE(c)        printf("%s", (c))
 
 void InitConsoleColors();
 

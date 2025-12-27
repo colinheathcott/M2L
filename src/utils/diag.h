@@ -7,6 +7,7 @@
 typedef enum DiagIssue {
     /* Internal errors */
     ERR_INTERNAL = 0,
+    WARN_INTERNAL,
 
     /* Lexical errors */
     ERR_INVALID_CHAR,
@@ -19,13 +20,14 @@ typedef enum DiagLevel {
     DIAG_LEVEL_INFO,
 } DiagLevel;
 
-const char *DiagLevelStringified(DiagLevel self);
 const char *DiagIssueStringified(DiagIssue self);
 
 typedef struct DiagReport {
-    Span source_code;
+    Span span;
     const char *message;
 } DiagReport;
+
+void DiagReportRender(const DiagReport *self, const char *underlineColor);
 
 typedef struct Diagnostic {
     const DiagIssue issue;
@@ -34,10 +36,9 @@ typedef struct Diagnostic {
     DiagReport report;
 } Diagnostic;
 
-Diagnostic DiagNew(DiagIssue issue, const char *message,
-    DiagReport report);
+Diagnostic DiagNew(DiagIssue issue, const char *message, DiagReport report);
 
-void DiagRender(const Diagnostic *diag);
+void DiagRender(const Diagnostic *self);
 
 typedef struct DiagEngine {
     List diagList;

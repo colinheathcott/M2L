@@ -1,6 +1,7 @@
 #include "utils/list.h"
 #include "utils/source.h"
 #include "utils/ansi.h"
+#include "utils/diag.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
     assert(ListPush(&intList, &c) == LIST_RES_REALLOC);
     assert(*(int *)(ListGet(&intList, 0)) == a);
 
-    printf("%sRed %s%sGreen %s%sBlue%s",
+    printf("%sRed %s%sGreen %s%sBlue%s\n",
         ANSI_COLOR_RED,
         ANSI_RESET,
         ANSI_COLOR_GREEN,
@@ -40,6 +41,31 @@ int main(int argc, char **argv) {
         ANSI_COLOR_BLUE,
         ANSI_RESET
     );
+
+    {
+        const Source source = SourceNewFromData(
+            "if x + 1\n"
+            "  + 2 + A\n"
+            "  + 3 + B\n"
+            "{\n"
+            "  print(A)\n"
+            "}\n"
+        );
+        const Span span = (Span) {.src = &source, 
+            .offset = 3, .length = 25, .x = 4, .y = 1};
+
+        const DiagReport report = (DiagReport) {
+            .span = span,
+            .message = "expression is not true or false!"
+        };
+
+        const Diagnostic diag = DiagNew(
+            ERR_INTERNAL,
+            "if requires boolean expression", report
+        );
+
+        DiagRender(&diag);
+    }
 
     return 0;
 }

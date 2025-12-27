@@ -29,9 +29,9 @@
 
 ## Diagnostics
 
-- [ ] Diagnostic
+- [x] Diagnostic
     - [x] Issues
     - [x] Levels
     - [x] Reports
-    - [ ] Pretty printing
+    - [x] Pretty printing
 - [x] Diagnostic buffer
