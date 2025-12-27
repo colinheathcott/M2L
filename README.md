@@ -15,9 +15,8 @@
 
 ## Scanning
 
-- [ ] Token
+- [x] Token
     - [x] Token kinds
-    - [ ] ~~Pretty printing~~
 - [ ] Scanning
     - [ ] Operators
     - [ ] String literals
@@ -35,3 +34,7 @@
     - [x] Reports
     - [x] Pretty printing
 - [x] Diagnostic buffer
+
+## Backlog
+
+- [ ] Write safe fatal error and diagnostic raiser for violated invariants.

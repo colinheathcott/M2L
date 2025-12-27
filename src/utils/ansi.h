@@ -2,7 +2,15 @@
 #define ANSI_H
 #include <stdbool.h>
 
+/* Used to specify whether or not the current terminal is capable of using
+ * ANSI escape codes to print color. It is initialized by `InitConsoleColors()`.
+ */
 extern bool USE_ANSI_FMT_SEQUENCES;
+
+/* Determines if the current terminal is capable of using ANSI escape codes
+ * to print color and will attempt to reconfigure if not.
+ */
+void InitConsoleColors();
 
 #define ANSI_ESC           (USE_ANSI_FMT_SEQUENCES ? "\033["  : "")
 #define ANSI_RESET         (USE_ANSI_FMT_SEQUENCES ? "\033[m" : "")
@@ -18,7 +26,5 @@ extern bool USE_ANSI_FMT_SEQUENCES;
 #define ANSI_BG_YELLOW     (USE_ANSI_FMT_SEQUENCES ? "\033[37;43m"  : "")
 #define ANSI_BG_BLUE       (USE_ANSI_FMT_SEQUENCES ? "\033[37;44m"  : "")
 #define COLORIZE(c)        printf("%s", (c))
-
-void InitConsoleColors();
 
 #endif

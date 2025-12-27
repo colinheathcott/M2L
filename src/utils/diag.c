@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// -------------------------------------------------------------------------- //
+// MARK: Helpers
+// -------------------------------------------------------------------------- //
+
 static inline size_t countDigits(size_t n) {
     if (n == 0)
         return 1;
@@ -24,6 +28,10 @@ static DiagLevel getLevelFromIssue(DiagIssue issue) {
     return DIAG_LEVEL_ERROR;
 }
 
+// -------------------------------------------------------------------------- //
+// MARK: Enums
+// -------------------------------------------------------------------------- //
+
 const char *DiagIssueStringified(DiagIssue self) {
     switch (self) {
     case ERR_INTERNAL:       return "internal compiler error";
@@ -34,6 +42,10 @@ const char *DiagIssueStringified(DiagIssue self) {
     }
     return "unknown error";
 }
+
+// -------------------------------------------------------------------------- //
+// MARK: Report Render
+// -------------------------------------------------------------------------- //
 
 void DiagReportRender(const DiagReport *self, const char *underlineColor) {
     const char *data = self->span.src->data;
@@ -50,6 +62,7 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
 
     //
     // Find start of the line containing span.offset
+    // @(invariant) assume invariant #1 here:
     //
     size_t start = 0;
     for (size_t i = self->span.offset; ; i--) {
@@ -131,6 +144,10 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
     }
 }
 
+// -------------------------------------------------------------------------- //
+// MARK: Diagnostic Methods
+// -------------------------------------------------------------------------- //
+
 Diagnostic DiagNew(
     DiagIssue issue,
     const char *message,
@@ -180,6 +197,10 @@ void DiagRender(const Diagnostic *self) {
     COLORIZE(ANSI_RESET);
     printf("%s\n", self->message);
 }
+
+// -------------------------------------------------------------------------- //
+// MARK: Diagnostic Engine
+// -------------------------------------------------------------------------- //
 
 void DiagEmit(DiagEngine *engine, Diagnostic *diag) {
     ListPush(&engine->diagList, diag); /* discard */
