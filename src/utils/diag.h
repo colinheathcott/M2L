@@ -4,6 +4,8 @@
 #include "source.h"
 #include "list.h"
 
+#define INIT_DIAG_LIST_CAP 16
+
 // -------------------------------------------------------------------------- //
 // MARK: Enums
 // -------------------------------------------------------------------------- //
@@ -95,8 +97,10 @@ typedef struct DiagEngine {
     List diagList;
 } DiagEngine;
 
+DiagEngine DENew();
+
 /* Pushes a new diagnostic to the list.
  */
-void DiagEmit(DiagEngine *engine, Diagnostic *diag);
+void DEPush(DiagEngine *engine, const Diagnostic *diag);
 
 #endif

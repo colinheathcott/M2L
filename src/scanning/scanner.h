@@ -1,21 +1,25 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#define INIT_TOKEN_LIST_CAP 512
-
 #include "../utils/source.h"
-#include "../utils/list.h"
+#include "../utils/diag.h"
+#include "token.h"
 
 typedef struct Scanner {
     const Source *src;
     size_t x;
     size_t y;
     size_t offset;
-    List tokenList;
+    TokenList *tokenList;
+    DiagEngine *diagEngine;
+    bool scanning;
 } Scanner;
 
-Scanner ScannerNew(const Source *src);
-List ScannerScanSource(Scanner *self);
+Scanner ScannerNew(const Source *src, DiagEngine *diagEngine,
+    TokenList *tokenList);
+
+void ScannerScanSource(Scanner *self);
 void ScannerDestroy(Scanner *self);
+bool ScannerIsValid(const Scanner *self);
 
 #endif

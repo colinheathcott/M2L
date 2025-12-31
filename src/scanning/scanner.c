@@ -1,11 +1,13 @@
 #include "scanner.h"
+#include "../utils/list.h"
+#include "../utils/diag.h"
 #include "token.h"
 #include <ctype.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
 
-#define SPAN(n) (Span) {.offset = offset, .length = (n), .x = x, .y = y}
+// -------------------------------------------------------------------------- //
+// MARK: Helpers
+// -------------------------------------------------------------------------- //
 
 static bool isSymbolStart(char ch) {
     return isalpha(ch) || ch == '_';
@@ -38,13 +40,17 @@ static TokenKind cmpKeywords(const Scanner *self, const Span *span) {
     return TK_SYMBOL;
 }
 
-static char current(const Scanner *self) {
+// -------------------------------------------------------------------------- //
+// MARK: Scanner Helpers
+// -------------------------------------------------------------------------- //
+
+static unsigned char current(const Scanner *self) {
     if (self->offset >= self->src->length)
         return '\0';
     return self->src->data[self->offset];
 }
 
-static char peek(const Scanner *self) {
+static unsigned char peek(const Scanner *self) {
     if (self->offset + 1 >= self->src->length)
         return '\0';
     return self->src->data[self->offset + 1];
@@ -57,7 +63,7 @@ static void next(Scanner *self) {
     self->x++;
 }
 
-static bool expect(Scanner *self, char ch) {
+static bool expect(Scanner *self, unsigned char ch) {
     if (peek(self) != ch)
         return false;
     next(self);
@@ -72,60 +78,142 @@ static void skipWhitespace(Scanner *self) {
     }
 }
 
-static void scanToken(Scanner *self) {
-    skipWhitespace(self);
-    
-    size_t offset = self->offset;
-    size_t length = 1;
-    size_t x = self->x;
-    size_t y = self->y;
-    int kind = -1;
+// -------------------------------------------------------------------------- //
+// MARK: Scanner Methods
+// -------------------------------------------------------------------------- //
 
-    switch (current(self)) {
-    case '\0': {
-        kind = TK_EOF;
-        break;
-    }
-    default:
-        kind = -1;
-    }
-
-    // Check for error (unknown character)
-    if (kind < 0) {
-        printf("Error encountered: %i", kind);
-        return;
-    }
-
-    // Create and push the token by casting kind.
-    Token tok = (Token) {
-        .kind = (TokenKind)(kind),
-        .span = (Span) { self->src, offset, length, x, y }
-    };
-    ListPush(&self->tokenList, &tok); /* discard */
+// assumes current -> '\n'
+static void scanEol(Scanner *self) {  
+    self->y++;
+    self->x = 0;
+    next(self);
 }
 
-Scanner ScannerNew(const Source *src) {
-    // Make a new arena for the tokens
-    List tokenList = ListNew(sizeof(Token), INIT_TOKEN_LIST_CAP);
-    if (!ListIsValid(&tokenList))
-        return (Scanner) {0};
+/* Scans a single token if there is one and emits it. If no valid token is
+ * found, then a diagnostic is emitted.
+ *
+ * Begins by matching the current character and ends on the first character of
+ * the NEXT token. No need to advance from the caller, even if no token is
+ * emitted.
+ */
+static void scanToken(Scanner *self) {
+    skipWhitespace(self);
+
+    size_t offset = self->offset;
+    size_t x = self->x;
+    size_t y = self->y;
+    size_t length = 1;
     
-    // Return valid scanner
-    return (Scanner) {
+    unsigned char ch = current(self);
+    printf("scan loop: %c\n", ch);
+
+    TokenKind kind = 0;
+    switch (ch) {
+    case '\0': {
+        kind = TK_EOF;
+        self->scanning = false;
+        break;
+    }
+
+    case '(': { kind = TK_LPAR; break; }
+    case ')': { kind = TK_RPAR; break; }
+    
+    case '+': {
+        if (expect(self, '+')) {
+            length++;
+            kind = TK_PLUS_PLUS;
+        } else if (expect(self, '=')) {
+            length++;
+            kind = TK_PLUS_EQ;
+        } else {
+            kind = TK_PLUS;
+        }
+        break;
+    }
+
+    case '.': { kind = TK_DOT;       break; }
+    case ',': { kind = TK_COMMA;     break; }
+    case ':': { kind = TK_COLON;     break; }
+    case ';': { kind = TK_SEMICOLON; break; }
+
+    default: {
+        const DiagReport report = (DiagReport) {
+            .span = (Span) {self->src, offset, 1, x, y},
+            .message = ""
+        };
+        const Diagnostic diag = DiagNew(
+            ERR_INVALID_CHAR,
+            "this character is not recogonized",
+            report
+        );
+
+        // Push the diagnostic and then early return
+        DEPush(self->diagEngine, &diag);
+        next(self);
+        return;
+    }
+    }
+
+    const Span span = (Span) {self->src, offset, length, x, y};
+    const Token token = (Token) { kind, span };
+
+    // Consume the number of characters of the token
+    for (size_t i = length ;; i--) {
+        if (i == 0) { break; }
+        next(self);
+    }
+
+    // Emit the token and return
+    TLPush(self->tokenList, &token);
+
+    ch = current(self);
+    printf("after loop: %c\n", ch);
+    return;
+}
+
+// -------------------------------------------------------------------------- //
+// MARK: Scanner API
+// -------------------------------------------------------------------------- //
+
+Scanner ScannerNew(
+    const Source *src,
+    DiagEngine *diagEngine,
+    TokenList *tokenList
+) {
+    Scanner s = (Scanner) {
         .src = src,
         .x = 1,
         .y = 1,
         .offset = 0,
-        .tokenList = tokenList
+        .tokenList = tokenList,
+        .diagEngine = diagEngine,
+        .scanning = false
     };
+
+    if (ScannerIsValid(&s)) return s;
+    else return (Scanner) {0};
 }
 
-List ScannerScanSource(Scanner *self) {
-    return self->tokenList;
+void ScannerScanSource(Scanner *self) {
+    if (!ScannerIsValid(self)) return;
+
+    self->scanning = true;
+    while (self->scanning) {
+        scanToken(self);
+    }
 }
 
 void ScannerDestroy(Scanner *self) {
     if (!self) return;
-    ListFree(&self->tokenList);
     *self = (Scanner) {0}; // poison
+}
+
+bool ScannerIsValid(const Scanner *self) {
+    return (!self
+        || !self->src
+        || !self->tokenList
+        || !self->diagEngine
+        || !ListIsValid(&self->diagEngine->diagList)
+        || !ListIsValid(&self->tokenList->tokens)
+    ) == false;
 }

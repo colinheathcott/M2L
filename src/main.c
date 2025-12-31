@@ -2,70 +2,65 @@
 #include "utils/source.h"
 #include "utils/ansi.h"
 #include "utils/diag.h"
+#include "scanning/token.h"
+#include "scanning/scanner.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 
+// -------------------------------------------------------------------------- //
+// MARK: Scanning
+// -------------------------------------------------------------------------- //
+
+typedef struct ScanningResult {
+    bool isOk;
+    TokenList list;
+} ScanningResult;
+
+#define ERR    (ScanningResult) {.isOk = false, 0 };
+#define OK(tl) (ScanningResult) { .isOk = true, .list = (tl) };
+
+ScanningResult scan(const Source *source, DiagEngine *diagEngine) {
+    // Make a token list
+    TokenList tokenList = TLNew();
+    if (!ListIsValid(&tokenList.tokens))
+        return ERR;
+    
+    // Make a new scanner
+    Scanner scanner = ScannerNew(source, diagEngine, &tokenList);
+    if (!ScannerIsValid(&scanner))
+        return ERR;
+
+    // Scan tokens
+    ScannerScanSource(&scanner);
+    ScannerDestroy(&scanner);
+    return OK(tokenList);
+}
+
+#undef ERR
+#undef OK
+
+// -------------------------------------------------------------------------- //
+// MARK: Main
+// -------------------------------------------------------------------------- //
+
 int main(int argc, char **argv) {
     InitConsoleColors();
 
-    const Source source = SourceNewFromData("func main()");
-    const Span span = (Span) {.src = &source, 
-        .offset = 0, .length = 11, .x = 1, .y = 1};
-    const Substring substr = SpanSubstring(&span);
+    const Source source = SourceNewFromData("+ += ()");
+    DiagEngine de = DENew();
+    ScanningResult scanRes = scan(&source, &de);
+
+    printf("%zu\n", scanRes.list.tokens.count);
+
+    assert(scanRes.isOk);
+    assert(scanRes.list.tokens.count == 5);
+
+    assert(((Token*)ListGet(&scanRes.list.tokens, 0))->kind == TK_PLUS);
+    assert(((Token*)ListGet(&scanRes.list.tokens, 1))->kind == TK_PLUS_EQ);
+    assert(((Token*)ListGet(&scanRes.list.tokens, 2))->kind == TK_LPAR);
+    assert(((Token*)ListGet(&scanRes.list.tokens, 3))->kind == TK_RPAR);
+    assert(((Token*)ListGet(&scanRes.list.tokens, 4))->kind == TK_EOF);
     
-    // Sanity checks
-    assert(!SubstringIsNull(&substr));
-    assert(substr.length == 11);
-    assert(strcmp(source.path, "<static_data>") == 0);
-
-    for (int i = 0; i < substr.length; i++)
-        putchar(substr.data[i]);
-    putchar('\n');
-
-    List intList = ListNew(sizeof(int), 2);
-    assert(ListIsValid(&intList));
-    int a = 1;
-    int b = 2;
-    int c = 3;
-    assert(ListPush(&intList, &a) == LIST_RES_OK);
-    assert(ListPush(&intList, &b) == LIST_RES_OK);
-    assert(ListPush(&intList, &c) == LIST_RES_REALLOC);
-    assert(*(int *)(ListGet(&intList, 0)) == a);
-
-    printf("%sRed %s%sGreen %s%sBlue%s\n",
-        ANSI_COLOR_RED,
-        ANSI_RESET,
-        ANSI_COLOR_GREEN,
-        ANSI_RESET,
-        ANSI_COLOR_BLUE,
-        ANSI_RESET
-    );
-
-    {
-        const Source source = SourceNewFromData(
-            "if x + 1\n"
-            "  + 2 + A\n"
-            "  + 3 + B\n"
-            "{\n"
-            "  print(A)\n"
-            "}\n"
-        );
-        const Span span = (Span) {.src = &source, 
-            .offset = 3, .length = 25, .x = 4, .y = 1};
-
-        const DiagReport report = (DiagReport) {
-            .span = span,
-            .message = "expression is not true or false!"
-        };
-
-        const Diagnostic diag = DiagNew(
-            ERR_INTERNAL,
-            "if requires boolean expression", report
-        );
-
-        DiagRender(&diag);
-    }
-
     return 0;
 }

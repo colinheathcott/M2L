@@ -62,7 +62,7 @@ void *ListGet(const List *self, size_t i);
  * fail in the case of overflow or `realloc` error. Always check the result
  * against `LIST_RESULT_OK` or `LIST_RESULT_REALLOCATED`.
  */
-ListResult ListPush(List *self, void *item);
+ListResult ListPush(List *self, const void *item);
 
 /* Frees the list and poisons it by making it `NULL`.
  */

@@ -2,6 +2,13 @@
 #define TOKEN_H
 
 #include "../utils/source.h"
+#include "../utils/list.h"
+
+#define INIT_TOKEN_LIST_CAP 512
+
+// -------------------------------------------------------------------------- //
+// MARK: Token
+// -------------------------------------------------------------------------- //
 
 typedef enum TokenKind {
     TK_EOF = 0,
@@ -37,5 +44,16 @@ typedef struct Token {
     const TokenKind kind;
     const Span      span;
 } Token;
+
+// -------------------------------------------------------------------------- //
+// MARK: TokenList
+// -------------------------------------------------------------------------- //
+
+typedef struct TokenList {
+    List tokens;
+} TokenList;
+
+TokenList TLNew();
+void TLPush(TokenList *self, const Token *token);
 
 #endif

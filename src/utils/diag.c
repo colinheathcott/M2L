@@ -1,5 +1,6 @@
 #include "diag.h"
 #include "ansi.h"
+#include "list.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,7 +112,7 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
         }
 
         // Print caret gutter
-       COLORIZE(ANSI_COLOR_BLUE);
+        COLORIZE(ANSI_COLOR_BLUE);
         printf("%*s| ", (int)gutterSize, "");
         COLORIZE(ANSI_RESET);
 
@@ -167,17 +168,17 @@ void DiagRender(const Diagnostic *self) {
 
     switch(self->level) {
     case DIAG_LEVEL_ERROR: {
-        underlineColor = ANSI_COLOR_RED;
+        underlineColor  = ANSI_COLOR_RED;
         foregroundColor = ANSI_BG_RED;
         break;
     }
     case DIAG_LEVEL_WARN: {
-        underlineColor = ANSI_COLOR_YELLOW;
+        underlineColor  = ANSI_COLOR_YELLOW;
         foregroundColor = ANSI_BG_YELLOW;
         break;
     }
     default: {
-        underlineColor = ANSI_COLOR_BLUE;
+        underlineColor  = ANSI_COLOR_BLUE;
         foregroundColor = ANSI_BG_BLUE;
         break;
     }
@@ -202,6 +203,12 @@ void DiagRender(const Diagnostic *self) {
 // MARK: Diagnostic Engine
 // -------------------------------------------------------------------------- //
 
-void DiagEmit(DiagEngine *engine, Diagnostic *diag) {
-    ListPush(&engine->diagList, diag); /* discard */
+DiagEngine DENew() {
+    List diagList = ListNew(sizeof(Diagnostic), INIT_DIAG_LIST_CAP);
+    if (!ListIsValid(&diagList)) return (DiagEngine) {0};
+    else return (DiagEngine) { diagList };
+}
+
+void DEPush(DiagEngine *engine, const Diagnostic *diag) {
+    /* discard */ ListPush(&engine->diagList, diag);
 }

@@ -5,7 +5,10 @@
 
 #define NULL_SUBSTRING (Substring) { .data = NULL, .length = 0 }
 
+// -------------------------------------------------------------------------- //
 // MARK: Source
+// -------------------------------------------------------------------------- //
+
 /* Contains the information for a single translation unit's source code,
  * including the source code in bytes, the path name, and the size of the
  * source code.
@@ -22,7 +25,10 @@ typedef struct Source {
  */
 Source SourceNewFromData(const char *data);
 
+// -------------------------------------------------------------------------- //
 // MARK: Substring
+// -------------------------------------------------------------------------- //
+
 /* A helper struct for storing substrings of source code. These are non-owning!
  * - `data` is a pointer to the first byte of the substring in the original
  * location in memory.
@@ -52,7 +58,10 @@ bool SubstringCmpString(Substring *a, const char *b);
  */
 bool SubstringCmpSubstring(Substring *a, Substring *b);
 
+// -------------------------------------------------------------------------- //
 // MARK: Span
+// -------------------------------------------------------------------------- //
+
 /* Used to represent some amount of bytes in the original source code.
  * `offset` and `length` quantities are measured in bytes.
  * - `x` is the user-facing column number (nonzero).

@@ -41,7 +41,7 @@ void *ListGet(const List *self, size_t i) {
     return (char *)self->data + (i * self->size);
 }
 
-ListResult ListPush(List *self, void *item) {
+ListResult ListPush(List *self, const void *item) {
     if (!ListIsValid(self) || item == NULL)
         return LIST_RES_NULLPTR;
     ListResult res = LIST_RES_OK;
