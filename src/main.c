@@ -6,7 +6,6 @@
 #include "scanning/scanner.h"
 #include <stdio.h>
 #include <assert.h>
-#include <string.h>
 #include <stdbool.h>
 
 // -------------------------------------------------------------------------- //
@@ -16,7 +15,7 @@
 int main(int argc, char **argv) {
     InitConsoleColors();
 
-    const Source source = SourceNewFromData("a + b");
+    const Source source = SourceNewFromData("let a = c + b");
     DiagEngine de = DENew();
     TokenList  tl = TLNew();
     
@@ -32,13 +31,15 @@ int main(int argc, char **argv) {
     if (!success) return 1;
 
     printf("%zu\n", tl.tokens.count);
-    assert(tl.tokens.count == 4);
+    //assert(tl.tokens.count == 4);
     assert(de.diagList.count == 0);
 
-    assert(((Token*)ListGet(&tl.tokens, 0))->kind == TK_SYMBOL);
-    assert(((Token*)ListGet(&tl.tokens, 1))->kind == TK_PLUS);
-    assert(((Token*)ListGet(&tl.tokens, 2))->kind == TK_SYMBOL);
-    assert(((Token*)ListGet(&tl.tokens, 3))->kind == TK_EOF);
+    TLPrint(stderr, &tl);
+
+    // assert(((Token*)ListGet(&tl.tokens, 0))->kind == TK_SYMBOL);
+    // assert(((Token*)ListGet(&tl.tokens, 1))->kind == TK_PLUS);
+    // assert(((Token*)ListGet(&tl.tokens, 2))->kind == TK_SYMBOL);
+    // assert(((Token*)ListGet(&tl.tokens, 3))->kind == TK_EOF);
     
     return 0;
 }

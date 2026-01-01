@@ -10,40 +10,75 @@
 // MARK: Token
 // -------------------------------------------------------------------------- //
 
+#define TOKEN_LIST                                                             \
+    X(TK_LPAR, "LPAREN")                                                       \
+    X(TK_RPAR, "RPAREN")                                                       \
+    X(TK_LCURL, "LCURL")                                                       \
+    X(TK_RCURL, "RCURL")                                                       \
+    X(TK_LBRAC, "LBRAC")                                                       \
+    X(RK_RBRAC, "RBRAC")                                                       \
+    X(TK_EOL, "EOL")                                                           \
+    X(TK_PLUS, "PLUS")                                                         \
+    X(TK_MIN, "MIN")                                                           \
+    X(TK_STAR, "STAR")                                                         \
+    X(TK_SLASH, "SLASH")                                                       \
+    X(TK_PLUS_PLUS, "PLUS_PLUS")                                               \
+    X(TK_MIN_MIN, "MIN_MIN")                                                   \
+    X(TK_STAR_STAR, "STAR_STAR")                                               \
+    X(TK_PLUS_EQ, "PLUS_EQ")                                                   \
+    X(TK_MINUS_EQ, "MINUS_EQ")                                                 \
+    X(TK_STAR_EQ, "STAR_EQ")                                                   \
+    X(TK_STAR_STAR_EQ, "STAR_STAR_EQ")                                         \
+    X(TK_SLASH_SLASH, "SLASH_SLASH")                                           \
+    X(TK_SLASH_EQ, "SLASH_EQ")                                                 \
+    X(TK_SLASH_SLASH_EQ, "SLASH_SLASH_EQ")                                     \
+    X(TK_PERCENT, "PERCENT")                                                   \
+    X(TK_BANG, "BANG")                                                         \
+    X(TK_BANG_EQ, "BANG_EQ")                                                   \
+    X(TK_EQ, "EQ")                                                             \
+    X(TK_EQ_EQ, "EQ_EQ")                                                       \
+    X(TK_LT, "LT")                                                             \
+    X(TK_LT_EQ, "LT_EQ")                                                       \
+    X(TK_GT, "GT")                                                             \
+    X(TK_GT_EQ, "GT_EQ")                                                       \
+    X(TK_PIPE, "PIPE")                                                         \
+    X(TK_PIPE_PIPE, "PIPE_PIPE")                                               \
+    X(TK_AND, "AND")                                                           \
+    X(TK_AND_AND, "AND_AND")                                                   \
+    X(TK_COLON, "COLON")                                                       \
+    X(TK_SEMICOLON, "SEMICOLON")                                               \
+    X(TK_DOT, "DOT")                                                           \
+    X(TK_QMARK, "QMARK")                                                       \
+    X(TK_COMMA, "COMMA")                                                       \
+    X(TK_ARROW, "ARROW")                                                       \
+    X(TK_SYMBOL, "SYMBOL")                                                     \
+    X(TK_INT, "INT")                                                           \
+    X(TK_STR, "STR")                                                           \
+    X(TK_FLOAT, "FLOAT")                                                       \
+    X(TK_FUNC, "FUNC")                                                         \
+    X(TK_LET, "LET")                                                           \
+    X(TK_MUT, "MUT")                                                           \
+    X(TK_ENUM, "ENUM")                                                         \
+    X(TK_TYPE, "TYPE")                                                         \
+    X(TK_IF, "IF")                                                             \
+    X(TK_ELSE, "ELSE")                                                         \
+    X(TK_FOR, "FOR")                                                           \
+    X(TK_IN, "IN")                                                             \
+    X(TK_WHILE, "WHILE")                                                       \
+    X(TK_EOF, "EOF")
+
 typedef enum TokenKind {
-    TK_EOF = 0,
-    TK_EOL,
-
-    /* Grouping */
-    TK_LPAR, TK_RPAR, TK_LBRAC, TK_RBRAC, TK_LCURL, TK_RCURL,
-    
-    /* Arithmetic */
-    TK_PLUS, TK_PLUS_PLUS, TK_PLUS_EQ,
-    TK_MIN, TK_MIN_MIN, TK_MIN_EQ,
-    TK_STAR, TK_STAR_STAR, TK_STAR_EQ, TK_STAR_STAR_EQ,
-    TK_SLASH, TK_SLASH_SLASH, TK_SLASH_EQ, TK_SLASH_SLASH_EQ,
-    TK_MOD, TK_MOD_EQ,
-
-    /* Comparison */
-    TK_LT, TK_GT, TK_LT_EQ, TK_GT_EQ,
-    TK_BANG, TK_BANG_EQ, TK_EQ, TK_EQ_EQ,
-    TK_AND, TK_AND_AND, TK_BAR, TK_BAR_BAR,
-
-    /* Misc Operators */
-    TK_DOT, TK_COMMA, TK_COLON, TK_SEMICOLON, TK_ARROW,
-
-    /* Literals */
-    TK_STRING, TK_INT, TK_FLOAT, TK_SYMBOL,
-
-    /* Keywords */
-    TK_LET, TK_MUT, TK_FUNC, TK_TYPE, TK_IF, TK_ELSE,
-    TK_FOR, TK_IN, TK_WHILE
+#define X(name, str) name,
+    TOKEN_LIST
+#undef X
 } TokenKind;
 
 typedef struct Token {
     const TokenKind kind;
     const Span      span;
 } Token;
+
+void TokenPrint(FILE *ioStream, const Token *self);
 
 // -------------------------------------------------------------------------- //
 // MARK: TokenList
@@ -55,5 +90,7 @@ typedef struct TokenList {
 
 TokenList TLNew();
 void TLPush(TokenList *self, const Token *token);
+void TLPrint(FILE *ioStream, const TokenList *self);
+
 
 #endif

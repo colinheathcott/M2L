@@ -17,7 +17,7 @@
 
 - [x] Token
     - [x] Token kinds
-    - [ ] Pretty printer
+    - [x] Pretty printer
 - [ ] Scanning
     - [ ] Operators
     - [ ] String literals

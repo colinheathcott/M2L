@@ -1,6 +1,7 @@
 #include "scanner.h"
 #include "../utils/list.h"
 #include "../utils/diag.h"
+#include "token.h"
 #include <ctype.h>
 #include <stdio.h>
 
@@ -173,6 +174,16 @@ static void scanToken(Scanner *self) {
             kind = TK_PLUS_EQ;
         } else {
             kind = TK_PLUS;
+        }
+        break;
+    }
+
+    case '=': {
+        if (expect(self, '=')) {
+            length++;
+            kind = TK_EQ_EQ;
+        } else {
+            kind = TK_EQ;
         }
         break;
     }

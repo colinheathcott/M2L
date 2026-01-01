@@ -41,6 +41,14 @@ bool SubstringIsNull(const Substring *str) {
 // MARK: Substring
 // -------------------------------------------------------------------------- //
 
+void SubstringPrint(FILE *ioStream, const Substring *self) {
+    if (!self || !ioStream) {
+        fprintf(stderr, "<invalid IO stream pointer or substring>\n");
+        return;
+    }
+    fwrite(self->data, 1, self->length, ioStream);
+}
+
 bool SubstringCmpSubstring(Substring *a, Substring *b) {
     if (SubstringIsNull(a) || SubstringIsNull(b))
         return false;

@@ -2,6 +2,7 @@
 #define SOURCE_H
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define NULL_SUBSTRING (Substring) { .data = NULL, .length = 0 }
 
@@ -57,6 +58,10 @@ bool SubstringCmpString(Substring *a, const char *b);
 /* Compares a `Substring` with a `const char *`.
  */
 bool SubstringCmpSubstring(Substring *a, Substring *b);
+
+/* Prints the substring to the specific IO stream.
+ */
+void SubstringPrint(FILE *ioStream, const Substring *self);
 
 // -------------------------------------------------------------------------- //
 // MARK: Span
