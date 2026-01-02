@@ -15,7 +15,7 @@
 int main(int argc, char **argv) {
     InitConsoleColors();
 
-    const Source source = SourceNewFromData("let a = 1.add(3.5.sub(1))");
+    const Source source = SourceNewFromData("let a = \"Hello, SMPL!");
     DiagEngine de = DENew();
     TokenList  tl = TLNew();
     
@@ -28,13 +28,18 @@ int main(int argc, char **argv) {
     // Scan tokens
     bool success = false;
     ScannerScan(&scanner, &success);
-    if (!success) return 1;
+    if (!success) {
+        TLPrint(stderr, &tl);
+        DEPrint(stderr, &de);
+        return 1;
+    }
 
     printf("%zu\n", tl.tokens.count);
     //assert(tl.tokens.count == 4);
     assert(de.diagList.count == 0);
 
     TLPrint(stderr, &tl);
+    DEPrint(stderr, &de);
 
     // assert(((Token*)ListGet(&tl.tokens, 0))->kind == TK_SYMBOL);
     // assert(((Token*)ListGet(&tl.tokens, 1))->kind == TK_PLUS);

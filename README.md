@@ -19,8 +19,9 @@
     - [x] Token kinds
     - [x] Pretty printer
 - [ ] Scanning
-    - [ ] Operators
-    - [ ] String literals
+    - [x] Operators
+    - [x] String literals
+        - [ ] Escape sequences
     - [ ] Raw string literals
     - [x] Symbols
     - [x] Integers

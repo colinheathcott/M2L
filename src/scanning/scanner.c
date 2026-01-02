@@ -34,15 +34,15 @@ static bool isDigitFollow(char ch) {
 static TokenKind cmpKeywords(const Scanner *self, const Span *span) {
     Substring str = SpanSubstring(span);
     // Purposefully skip the null check, the `SubstringCmpString()` will do it.
-    if (SubstringCmpString(&str, "let"))   return TK_LET;
-    if (SubstringCmpString(&str, "mut"))   return TK_MUT;
-    if (SubstringCmpString(&str, "func"))  return TK_FUNC;
-    if (SubstringCmpString(&str, "type"))  return TK_TYPE;
-    if (SubstringCmpString(&str, "if"))    return TK_IF;
-    if (SubstringCmpString(&str, "else"))  return TK_ELSE;
-    if (SubstringCmpString(&str, "for"))   return TK_FOR;
-    if (SubstringCmpString(&str, "in"))    return TK_IN;
-    if (SubstringCmpString(&str, "while")) return TK_WHILE;
+    if (SubstringCmpString(&str, "let"))      return TK_LET;
+    if (SubstringCmpString(&str, "mutable"))  return TK_MUTABLE;
+    if (SubstringCmpString(&str, "function")) return TK_FUNCTION;
+    if (SubstringCmpString(&str, "type"))     return TK_TYPE;
+    if (SubstringCmpString(&str, "if"))       return TK_IF;
+    if (SubstringCmpString(&str, "else"))     return TK_ELSE;
+    if (SubstringCmpString(&str, "for"))      return TK_FOR;
+    if (SubstringCmpString(&str, "in"))       return TK_IN;
+    if (SubstringCmpString(&str, "while"))    return TK_WHILE;
     return TK_SYMBOL;
 }
 
@@ -99,6 +99,48 @@ static void scanEol(Scanner *self) {
     self->x = 0;
 }
 
+// Strings include the quotes in the span
+static void scanString(Scanner *self) {
+    size_t offset = self->offset;
+    size_t x = self->x;
+    size_t y = self->y;
+
+    // Advance once at the beginning
+    next(self);
+
+    while (current(self) != '"') {
+        // If EOF reached, emit an error
+        if (current(self) == '\0') {
+            Span span = (Span) {self->src, offset, 1, x, y};
+            Diagnostic diag = DIAG(
+                ERR_INVALID_STRING,
+                span, "",
+                "this string literal is missing a closing `\"`"
+            );
+
+            // Push the diagnostic and then early return
+            self->success = false;
+            DEPush(self->diagEngine, &diag);
+            next(self);
+            return;
+        }
+
+        // Otherwise keep consuming
+        next(self);
+    }
+
+    // Get a span
+    size_t length   = self->offset - offset + 1;
+    const Span span = (Span) {self->src, offset, length, x, y};
+
+    // Create the token and push
+    const Token token = (Token) { TK_STR, span };
+    TLPush(self->tokenList, &token);
+
+    // Advance to point to the next token
+    next(self);
+}
+
 static void scanDigit(Scanner *self) {
     size_t offset = self->offset;
     size_t x = self->x;
@@ -141,8 +183,8 @@ static void scanDigit(Scanner *self) {
 
     // Here, the next item is NOT part of the symbol
     // First get a span and check the substring
-    size_t length          = self->offset - offset + 1;
-    const Span span        = (Span) {self->src, offset, length, x, y};
+    size_t length   = self->offset - offset + 1;
+    const Span span = (Span) {self->src, offset, length, x, y};
 
     // Create the token and push
     const Token token = (Token) { kind, span };
@@ -163,8 +205,8 @@ static void scanSymbol(Scanner *self) {
 
     // Here, the next item is NOT part of the symbol
     // First get a span and check the substring
-    size_t length          = self->offset - offset + 1;
-    const Span span        = (Span) {self->src, offset, length, x, y};
+    size_t length   = self->offset - offset + 1;
+    const Span span = (Span) {self->src, offset, length, x, y};
 
     // Check if the substring is a keyword
     const TokenKind kind = cmpKeywords(self, &span);
@@ -210,6 +252,10 @@ static void scanToken(Scanner *self) {
 
     TokenKind kind = 0;
     switch (ch) {
+    
+    //
+    // Meta
+    //
     case '\0': {
         kind = TK_EOF;
         self->scanning = false;
@@ -220,10 +266,24 @@ static void scanToken(Scanner *self) {
         kind = TK_EOL;
         break;
     }
+    case '"': {
+        scanString(self);
+        return;
+    }
 
-    case '(': { kind = TK_LPAR; break; }
-    case ')': { kind = TK_RPAR; break; }
-    
+    //
+    // Grouping
+    // 
+    case '(': { kind = TK_LPAR;  break; }
+    case ')': { kind = TK_RPAR;  break; }
+    case '[': { kind = TK_LBRAC; break; }
+    case ']': { kind = RK_RBRAC; break; }
+    case '{': { kind = TK_LCURL; break; }
+    case '}': { kind = TK_RCURL; break; }
+
+    //
+    // Arithmetic
+    //
     case '+': {
         if (expect(self, '+')) {
             length++;
@@ -236,7 +296,96 @@ static void scanToken(Scanner *self) {
         }
         break;
     }
+    case '-': {
+        if (expect(self, '-')) {
+            length++;
+            kind = TK_MIN_MIN;
+        } else if (expect(self, '=')) {
+            length++;
+            kind = TK_MINUS_EQ;
+        } else if (expect(self, '>')) {
+            length++;
+            kind = TK_ARROW;
+        
+        } else {
+            kind = TK_MIN;
+        }
+        break;
+    }
+    case '*': {
+        if (expect(self, '*')) {
+            length++;
+            if (expect(self, '=')) {
+                length++;
+                kind = TK_STAR_STAR_EQ;
+            } else {
+                kind = TK_STAR_STAR;
+            }          
+        } else if (expect(self, '=')) {
+            length++;
+            kind = TK_STAR_EQ;
+        } else {
+            kind = TK_STAR;
+        }
+        break;
+    }
+    case '/': {
+        if (expect(self, '/')) {
+            length++;
+            if (expect(self, '=')) {
+                length++;
+                kind = TK_SLASH_SLASH_EQ;
+            } else {
+                kind = TK_SLASH_SLASH;
+            }          
+        } else if (expect(self, '=')) {
+            length++;
+            kind = TK_SLASH_EQ;
+        } else {
+            kind = TK_SLASH;
+        }
+        break;
+    }
+    case '%': {
+        if (expect(self, '=')) {
+            length++;
+            kind = TK_PERCENT_EQ;
+        } else {
+            kind = TK_PERCENT;
+        }
+        break;
+    }
 
+    //
+    // Comparison
+    // 
+    case '!': {
+        if (expect(self, '=')) {
+            length++;
+            kind = TK_BANG_EQ;
+        } else {
+            kind = TK_BANG;
+        }
+        break;
+    }
+    case '<': {
+        if (expect(self, '=')) {
+            length++;
+            kind = TK_LT_EQ;
+        } else {
+            kind = TK_LT;
+        }
+        break;
+    }
+    case '>': {
+        if (expect(self, '=')) {
+            length++;
+            kind = TK_GT_EQ;
+        } else {
+            kind = TK_GT;
+        }
+        break;
+    }
     case '=': {
         if (expect(self, '=')) {
             length++;
@@ -247,11 +396,40 @@ static void scanToken(Scanner *self) {
         break;
     }
 
+    //
+    // Logical
+    //
+    case '|': {
+        if (expect(self, '|')) {
+            length++;
+            kind = TK_PIPE_PIPE;
+        } else {
+            kind = TK_PIPE;
+        }
+        break;
+    }
+    case '&': {
+        if (expect(self, '&')) {
+            length++;
+            kind = TK_AND_AND;
+        } else {
+            kind = TK_AND;
+        }
+        break;
+    }
+
+    //
+    // Misc
+    //
     case '.': { kind = TK_DOT;       break; }
     case ',': { kind = TK_COMMA;     break; }
     case ':': { kind = TK_COLON;     break; }
     case ';': { kind = TK_SEMICOLON; break; }
-
+    case '?': { kind = TK_QMARK;     break; }
+    
+    //
+    // Invalid character
+    //
     default: {
         const DiagReport report = (DiagReport) {
             .span = (Span) {self->src, offset, 1, x, y},
@@ -271,7 +449,7 @@ static void scanToken(Scanner *self) {
     }
     }
 
-    const Span span = (Span) {self->src, offset, length, x, y};
+    const Span span   = (Span) {self->src, offset, length, x, y};
     const Token token = (Token) { kind, span };
 
     // Consume the number of characters of the token

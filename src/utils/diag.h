@@ -6,6 +6,9 @@
 
 #define INIT_DIAG_LIST_CAP 16
 
+#define DIAG(issue, span, msg, help)                                           \
+    DiagNew((issue), (help), (DiagReport){.span = (span), .message = (msg)})
+
 // -------------------------------------------------------------------------- //
 // MARK: Enums
 // -------------------------------------------------------------------------- //
@@ -35,6 +38,10 @@ typedef enum DiagLevel {
 /* Returns a diagnostic issue as a string (to be printed to the console).
  */
 const char *DiagIssueStringified(DiagIssue self);
+
+/* Returns a diagnostic level as a string (to be printed to the console).
+ */
+const char *DiagLevelStringified(DiagLevel self);
 
 // -------------------------------------------------------------------------- //
 // MARK: Report
@@ -102,5 +109,7 @@ DiagEngine DENew();
 /* Pushes a new diagnostic to the list.
  */
 void DEPush(DiagEngine *engine, const Diagnostic *diag);
+
+void DEPrint(FILE *ioStream, const DiagEngine *self);
 
 #endif

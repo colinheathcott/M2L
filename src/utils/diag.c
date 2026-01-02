@@ -36,12 +36,21 @@ static DiagLevel getLevelFromIssue(DiagIssue issue) {
 const char *DiagIssueStringified(DiagIssue self) {
     switch (self) {
     case ERR_INTERNAL:       return "internal compiler error";
-    case WARN_INTERNAL:       return "internal compiler warning";
+    case WARN_INTERNAL:      return "internal compiler warning";
 
     case ERR_INVALID_CHAR:   return "invalid character";
     case ERR_INVALID_STRING: return "invalid string";
     }
     return "unknown error";
+}
+
+const char *DiagLevelStringified(DiagLevel self) {
+    switch (self) {
+    case DIAG_LEVEL_ERROR: return "error";
+    case DIAG_LEVEL_WARN:  return "warning";
+    case DIAG_LEVEL_INFO:  return "info";
+    }
+    return "unknown level";
 }
 
 // -------------------------------------------------------------------------- //
@@ -54,12 +63,15 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
     size_t gutterSize = 2 + countDigits(self->span.y);
 
     // Header
+    printf("in ");
+    COLORIZE(ANSI_COLOR_BLUE);
     printf(
-        "%s:%zu:%zu\n",
+        "%s:%zu:%zu:\n",
         self->span.src->path,
         self->span.y,
         self->span.x
     );
+    COLORIZE(ANSI_RESET);
 
     //
     // Find start of the line containing span.offset
@@ -111,6 +123,8 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
             }
         }
 
+        printf("\n");
+
         // Print caret gutter
         COLORIZE(ANSI_COLOR_BLUE);
         printf("%*s| ", (int)gutterSize, "");
@@ -121,7 +135,7 @@ void DiagReportRender(const DiagReport *self, const char *underlineColor) {
             self->span.offset < eol;
 
         for (size_t i = index; i < eol; i++) {
-            printf("%s", underlineColor);
+            COLORIZE(underlineColor);
             if (first_line && i == self->span.offset)
                 printf("^");
             else if (
@@ -169,27 +183,28 @@ void DiagRender(const Diagnostic *self) {
     switch(self->level) {
     case DIAG_LEVEL_ERROR: {
         underlineColor  = ANSI_COLOR_RED;
-        foregroundColor = ANSI_BG_RED;
+        foregroundColor = ANSI_COLOR_RED;
         break;
     }
     case DIAG_LEVEL_WARN: {
         underlineColor  = ANSI_COLOR_YELLOW;
-        foregroundColor = ANSI_BG_YELLOW;
+        foregroundColor = ANSI_COLOR_YELLOW;
         break;
     }
     default: {
         underlineColor  = ANSI_COLOR_BLUE;
-        foregroundColor = ANSI_BG_BLUE;
+        foregroundColor = ANSI_COLOR_BLUE;
         break;
     }
     }
 
     const char *issueName = DiagIssueStringified(self->issue);
+    const char *levelName = DiagLevelStringified(self->level);
 
     COLORIZE(foregroundColor);
-    printf("%s", issueName);
+    printf("%s: ", levelName);
     COLORIZE(ANSI_RESET);
-    printf("\n");
+    printf("%s ", issueName);
 
     DiagReportRender(&self->report, underlineColor);
     
@@ -211,4 +226,20 @@ DiagEngine DENew() {
 
 void DEPush(DiagEngine *engine, const Diagnostic *diag) {
     /* discard */ ListPush(&engine->diagList, diag);
+}
+
+void DEPrint(FILE *ioStream, const DiagEngine *self) {
+    if (!self || !ioStream || !ListIsValid(&self->diagList)) {
+        fprintf(stderr, "<invalid diag engine pointer or IO stream pointer>\n");
+        return;
+    }
+
+    for (size_t i = 0; i < self->diagList.count; i++) {
+        Diagnostic *diag = (Diagnostic *)ListGet(&self->diagList, i);
+        if (!diag) {
+            fprintf(ioStream, "<invalid diag pointer in list>\n");
+            continue;
+        }
+        DiagRender(diag);
+    }
 }

@@ -33,6 +33,7 @@
     X(TK_SLASH_EQ, "SLASH_EQ")                                                 \
     X(TK_SLASH_SLASH_EQ, "SLASH_SLASH_EQ")                                     \
     X(TK_PERCENT, "PERCENT")                                                   \
+    X(TK_PERCENT_EQ, "PERCENT_EQ")                                             \
     X(TK_BANG, "BANG")                                                         \
     X(TK_BANG_EQ, "BANG_EQ")                                                   \
     X(TK_EQ, "EQ")                                                             \
@@ -50,14 +51,15 @@
     X(TK_DOT, "DOT")                                                           \
     X(TK_QMARK, "QMARK")                                                       \
     X(TK_COMMA, "COMMA")                                                       \
+    X(TK_BACKTICK, "BACKTICK")                                                 \
     X(TK_ARROW, "ARROW")                                                       \
     X(TK_SYMBOL, "SYMBOL")                                                     \
     X(TK_INT, "INT")                                                           \
     X(TK_STR, "STR")                                                           \
     X(TK_FLOAT, "FLOAT")                                                       \
-    X(TK_FUNC, "FUNC")                                                         \
+    X(TK_FUNCTION, "FUNCTION")                                                 \
     X(TK_LET, "LET")                                                           \
-    X(TK_MUT, "MUT")                                                           \
+    X(TK_MUTABLE, "MUTABLE")                                                   \
     X(TK_ENUM, "ENUM")                                                         \
     X(TK_TYPE, "TYPE")                                                         \
     X(TK_IF, "IF")                                                             \
