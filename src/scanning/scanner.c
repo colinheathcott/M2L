@@ -35,8 +35,8 @@ static TokenKind cmpKeywords(const Scanner *self, const Span *span) {
     Substring str = SpanSubstring(span);
     // Purposefully skip the null check, the `SubstringCmpString()` will do it.
     if (SubstringCmpString(&str, "let"))      return TK_LET;
-    if (SubstringCmpString(&str, "mutable"))  return TK_MUTABLE;
-    if (SubstringCmpString(&str, "function")) return TK_FUNCTION;
+    if (SubstringCmpString(&str, "mut"))      return TK_MUT;
+    if (SubstringCmpString(&str, "fun"))      return TK_FUN;
     if (SubstringCmpString(&str, "type"))     return TK_TYPE;
     if (SubstringCmpString(&str, "if"))       return TK_IF;
     if (SubstringCmpString(&str, "else"))     return TK_ELSE;
@@ -262,8 +262,8 @@ static void scanToken(Scanner *self) {
     }
     case '\n': {
         scanEol(self);
-        kind = TK_EOL;
-        break;
+        next(self);
+        return scanToken(self);
     }
     case '"': {
         scanString(self);
@@ -515,7 +515,7 @@ bool ScannerIsValid(const Scanner *self) {
         || !self->src
         || !self->tokenList
         || !self->diagEngine
-        || !ListIsValid(&self->diagEngine->diagList)
+        || !ListIsValid(&self->diagEngine->diagnostics)
         || !ListIsValid(&self->tokenList->tokens)
     ) == false;
 }

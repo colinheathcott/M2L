@@ -17,7 +17,7 @@
     X(TK_RCURL, "RCURL")                                                       \
     X(TK_LBRAC, "LBRAC")                                                       \
     X(RK_RBRAC, "RBRAC")                                                       \
-    X(TK_EOL, "EOL")                                                           \
+                                                                               \
     X(TK_PLUS, "PLUS")                                                         \
     X(TK_MIN, "MIN")                                                           \
     X(TK_STAR, "STAR")                                                         \
@@ -53,13 +53,15 @@
     X(TK_COMMA, "COMMA")                                                       \
     X(TK_BACKTICK, "BACKTICK")                                                 \
     X(TK_ARROW, "ARROW")                                                       \
+                                                                               \
     X(TK_SYMBOL, "SYMBOL")                                                     \
     X(TK_INT, "INT")                                                           \
     X(TK_STR, "STR")                                                           \
     X(TK_FLOAT, "FLOAT")                                                       \
-    X(TK_FUNCTION, "FUNCTION")                                                 \
+                                                                               \
+    X(TK_FUN, "FUN")                                                           \
     X(TK_LET, "LET")                                                           \
-    X(TK_MUTABLE, "MUTABLE")                                                   \
+    X(TK_MUT, "MUT")                                                           \
     X(TK_ENUM, "ENUM")                                                         \
     X(TK_TYPE, "TYPE")                                                         \
     X(TK_IF, "IF")                                                             \

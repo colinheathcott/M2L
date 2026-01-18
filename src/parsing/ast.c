@@ -35,4 +35,5 @@ ExprId AstExprPush(Ast *self, const Expression *expr) {
 
     // @(expect) assume ListPush works
     /* discard */ ListPush(&self->exprs, expr);
+    return self->exprs.count - 1;
 }

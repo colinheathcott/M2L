@@ -8,8 +8,8 @@
 #define NULL_LIST (List) {0}
 
 // MARK: ListResult
-/* Used to represent the result of some operation on a list.
- */
+
+// Used to represent the result of some operation on a list.
 typedef enum ListResult {
     /* Successful, no issues. */
     LIST_RES_OK  = 0,
@@ -24,19 +24,19 @@ typedef enum ListResult {
 } ListResult;
 
 // MARK: List
-/* Abstraction over an arena allocator backed growable list/vector. Uses `void*`
- * under the hood for generic effect.
- * - `data` the beginning pointer to the data allocated in memory.
- * - `capacity` the capacity of the list as is. Cannot be zero.
- * - `count` the number of elements in the list now. Remember when indexing that
- * this is always `i + 1`.
- * - `size` the size of each element in the list.
- * 
- * `List` uses the `ListResult` enum for many functions.
- * `List` takes pointers when appending, but will copy the actual bytes--items
- * have the same lifetime as the list itself, even if the original data you
- * appended is freed.
- */
+
+// Abstraction over an arena allocator backed growable list/vector. Uses `void*`
+// under the hood for generic effect.
+// - `data` the beginning pointer to the data allocated in memory.
+// - `capacity` the capacity of the list as is. Cannot be zero.
+// - `count` the number of elements in the list now. Remember when indexing that
+// this is always `i + 1`.
+// - `size` the size of each element in the list.
+// 
+// `List` uses the `ListResult` enum for many functions.
+// `List` takes pointers when appending, but will copy the actual bytes--items
+// have the same lifetime as the list itself, even if the original data you
+// appended is freed.
 typedef struct List {
     void * data;
     size_t capacity;
@@ -44,33 +44,36 @@ typedef struct List {
     size_t size;
 } List;
 
-/* Creates a new list with the given item size and capacity.
- * - `capacity` cannot be zero!
- * - `size` cannot be zero!
- * Will fail only if either of the two prior invariants are violated, or if
- * there is an error with `malloc`, in which case the `List` will be `NULL`.
- * Remember to use `ListIsValid` after creating a list!
- */
+// Creates a new list with the given item size and capacity.
+// - `capacity` cannot be zero!
+// - `size` cannot be zero!
+// Will fail only if either of the two prior invariants are violated, or if
+// there is an error with `malloc`, in which case the `List` will be `NULL`.
+// Remember to use `ListIsValid` after creating a list!
 List ListNew(size_t size, size_t capacity);
 
-/* Used to fetch the `i` th element from a list. This will return the memory 
- * address of that item. Always check for `NULL`.
- */
+// Used to fetch the `i` th element from a list. This will return the memory 
+// address of that item. Always check for `NULL`.
 void *ListGet(const List *self, size_t i);
 
-/* Used to push a new element to the list. This may grow the list. It can also
- * fail in the case of overflow or `realloc` error. Always check the result
- * against `LIST_RESULT_OK` or `LIST_RESULT_REALLOCATED`.
- */
+// Returns the first element in the list. If the list is empty, `NULL` is
+// returned.
+void *ListFront(const List *self);
+
+// Returns the last element in the list. If the list is empty, `NULL` is
+// returned.
+void *ListBack(const List *self);
+
+// Used to push a new element to the list. This may grow the list. It can also
+// fail in the case of overflow or `realloc` error. Always check the result
+// against `LIST_RESULT_OK` or `LIST_RESULT_REALLOCATED`.
 ListResult ListPush(List *self, const void *item);
 
-/* Frees the list and poisons it by making it `NULL`.
- */
+// Frees the list and poisons it by making it `NULL`.
 ListResult ListFree(List *self);
 
-/* Checks if a list is valid, including checks for the actual pointer itself,
- * the data pointer, the size, and the capacity.
- */
+// Checks if a list is valid, including checks for the actual pointer itself,
+// the data pointer, the size, and the capacity.
 bool ListIsValid(const List *self);
 
 #endif

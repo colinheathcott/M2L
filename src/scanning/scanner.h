@@ -24,7 +24,7 @@ Scanner ScannerNew(const Source *src, DiagEngine *diagEngine,
 
 // Always initialize `success` to `false` at the caller level to ensure 
 // the scanner fails if the `success` pointer is null.
-void ScannerScan(Scanner *self, bool *success);
+void Scan(Scanner *self, bool *success);
 
 // Determines whether or not the scanner is valid, i.e. does it have a valid
 // source file, diag list, token list, etc.

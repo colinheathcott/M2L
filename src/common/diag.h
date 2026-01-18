@@ -91,7 +91,7 @@ void DiagRender(const Diagnostic *self);
 // 
 // There should be one diagnostic engine per translation unit (for now).
 typedef struct DiagEngine {
-    List diagList;
+    List diagnostics;
 } DiagEngine;
 
 DiagEngine DENew();

@@ -41,6 +41,20 @@ void *ListGet(const List *self, size_t i) {
     return (char *)self->data + (i * self->size);
 }
 
+void *ListFront(const List *self) {
+    if (!ListIsValid(self) || self->count == 0) {
+        return NULL;
+    }
+    return self->data;
+}
+
+void *ListBack(const List *self) {
+    if (!ListIsValid(self) || self->count == 0) {
+        return NULL;
+    }
+    return (char *)self->data + ((self->count - 1) * self->size);
+}
+
 ListResult ListPush(List *self, const void *item) {
     if (!ListIsValid(self) || item == NULL)
         return LIST_RES_NULLPTR;

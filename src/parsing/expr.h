@@ -47,6 +47,9 @@ typedef enum ExprKind {
     #undef X
 } ExprKind;
 
+// Returns the expression kind name as a string.
+const char *ExprKindStr(const ExprKind kind);
+
 typedef union ExprData {
     Substring    exprSymbol;
     int64_t      exprInt;
@@ -68,6 +71,8 @@ typedef struct Expression {
     const ExprData data;
 } Expression;
 
+// Pushes the given expression to the AST (copies the data in the pointer)
+// and returns the index of said expression in the list.
 ExprId AstExprPush(Ast *ast, const Expression *expr);
 
 #endif
