@@ -46,11 +46,11 @@ A programming language made for scientific computing, simulation, statistical mo
     - [x] Strings
     - [x] Booleans
     - [x] Symbols
-  - [ ] Unary Expressions
-    - [ ] Prefix
-    - [ ] Postfix
-  - [ ] Binary Expressions
-    - [ ] Arithmetic
+  - [x] Unary Expressions
+    - [x] Prefix
+    - [x] Postfix
+  - [x] Binary Expressions
+    - [x] Arithmetic
     - [ ] Comparison
     - [ ] Logical
     - [ ] Equality

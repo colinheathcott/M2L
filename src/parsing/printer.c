@@ -10,12 +10,12 @@
         fputc(' ', stdout);
 
 void indent(AstPrinter *self) {
-    self += 4;
+    self->indent += 4;
 }
 
 void dedent(AstPrinter *self) {
     if (self->indent < 4) return;
-    self -= 4;
+    self->indent -= 4;
 }
 
 AstPrinter AstPrinterNew(const Source *src, const Ast *ast) {
@@ -114,6 +114,42 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
+        dedent(self);
+
+        SPACES(self->indent);
+        printf(")\n");
+        return;
+    }
+    case EXPR_COMPARE: {
+        printf("compare(%s,\n", expr->data.exprCompare.op);
+        
+        indent(self);
+        AstPrintExpr(self, expr->data.exprCompare.lhs);
+        AstPrintExpr(self, expr->data.exprCompare.rhs);
+        dedent(self);
+
+        SPACES(self->indent);
+        printf(")\n");
+        return;
+    }
+    case EXPR_EQUALITY: {
+        printf("equality(%s,\n", expr->data.exprEquality.op);
+        
+        indent(self);
+        AstPrintExpr(self, expr->data.exprEquality.lhs);
+        AstPrintExpr(self, expr->data.exprEquality.rhs);
+        dedent(self);
+
+        SPACES(self->indent);
+        printf(")\n");
+        return;
+    }
+    case EXPR_LOGICAL: {
+        printf("logical(%s,\n", expr->data.exprLogical.op);
+        
+        indent(self);
+        AstPrintExpr(self, expr->data.exprLogical.lhs);
+        AstPrintExpr(self, expr->data.exprLogical.rhs);
         dedent(self);
 
         SPACES(self->indent);

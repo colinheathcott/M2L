@@ -219,7 +219,9 @@ bool expect(Parser *self, size_t k, TokenKind kind, const char *what) {
 // MARK: Expression Parsing
 // -------------------------------------------------------------------------- //
 
-// MARK: atom()
+ExprId expression(Parser *self);
+
+// MARK: expr: atom()
 
 // Parses an atomic expression, most generally a literal of some kind.
 // * Integer
@@ -402,7 +404,7 @@ ExprId atom(Parser *self) {
     return NULL_AST_ID;
 }
 
-// MARK: postfix()
+// MARK: expr: postfix()
 
 ExprId postfix(Parser *self) {
     const Span startSpan = get(self, 0)->span;
@@ -440,7 +442,7 @@ ExprId postfix(Parser *self) {
     return AstExprPush(self->ast, &expr);
 }
 
-// MARK: prefix()
+// MARK: expr: prefix()
 
 ExprId prefix(Parser *self) {
     LOG("prefix()\n");
@@ -496,9 +498,287 @@ ExprId prefix(Parser *self) {
     return AstExprPush(self->ast, &expr);
 }
 
-ExprId parseExpr(Parser *self) {
-    return prefix(self);
+// MARK: expr: factor()
+
+ExprId factor(Parser *self) {
+    LOG("factor()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = prefix(self);
+    POISON(lhs);
+
+    //
+    // Look for a binary infix operator BEFORE the RHS is parsed
+    //
+    const char *op;
+    switch (get(self, 0)->kind) {
+    case TK_STAR:
+        LOG(">> op: *\n");
+        op = "*";
+        break;
+    case TK_SLASH:
+        LOG(">> op: /\n");
+        op = "/";
+        break;
+    default:
+        return lhs;
+    }
+    
+    next(self, 1);
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_BINARY,
+        .data = { .exprBinary = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
 }
+
+// MARK: expr: term()
+
+ExprId term(Parser *self) {
+    LOG("term()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = factor(self);
+    POISON(lhs);
+
+    //
+    // Look for a binary infix operator BEFORE the RHS is parsed
+    //
+    const char *op;
+    switch (get(self, 0)->kind) {
+    case TK_PLUS:
+        LOG(">> op: +\n");
+        op = "+";
+        break;
+    case TK_MIN:
+        LOG(">> op: -\n");
+        op = "-";
+        break;
+    default:
+        return lhs;
+    }
+    
+    next(self, 1);
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_BINARY,
+        .data = { .exprBinary = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+// MARK: expr: comparison()
+
+ExprId comparison(Parser *self) {
+    LOG("comparison()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = term(self);
+    POISON(lhs);
+
+    //
+    // Look for a binary infix operator BEFORE the RHS is parsed
+    //
+    const char *op;
+    switch (get(self, 0)->kind) {
+    case TK_LT:
+        LOG(">> op: <\n");
+        op = "<";
+        break;
+    case TK_LT_EQ:
+        LOG(">> op: <=\n");
+        op = "<=";
+        break;
+    case TK_GT:
+        LOG(">> op: >\n");
+        op = ">";
+        break;
+    case TK_GT_EQ:
+        LOG(">> op: >=\n");
+        op = ">=";
+        break;
+    default:
+        return lhs;
+    }
+    
+    next(self, 1);
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_COMPARE,
+        .data = { .exprCompare = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+// MARK: expr: equality()
+
+ExprId equality(Parser *self) {
+    LOG("equality()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = comparison(self);
+    POISON(lhs);
+
+    //
+    // Look for a binary infix operator BEFORE the RHS is parsed
+    //
+    const char *op;
+    switch (get(self, 0)->kind) {
+    case TK_EQ_EQ:
+        LOG(">> op: ==\n");
+        op = "==";
+        break;
+    case TK_BANG_EQ:
+        LOG(">> op: !=\n");
+        op = "!=";
+        break;
+    default:
+        return lhs;
+    }
+    
+    next(self, 1);
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_EQUALITY,
+        .data = { .exprEquality = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+// MARK: expr: logicalOr()
+
+ExprId logicalOr(Parser *self) {
+    LOG("logicalOr()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = equality(self);
+    POISON(lhs);
+
+    //
+    // Look for the operator and return if it isn't there
+    //
+    if (get(self, 0)->kind != TK_PIPE_PIPE) {
+        return lhs;
+    }
+    const char *op = "||";
+    next(self, 1);
+
+    LOG(">> op: ||\n");
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_LOGICAL,
+        .data = { .exprLogical = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+// MARK: expr: logicalAnd()
+
+ExprId logicalAnd(Parser *self) {
+    LOG("logicalAnd()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId lhs = logicalOr(self);
+    POISON(lhs);
+
+    //
+    // Look for the operator and return if it isn't there
+    //
+    if (get(self, 0)->kind != TK_AND_AND) {
+        return lhs;
+    }
+    const char *op = "&&";
+    next(self, 1);
+
+    LOG(">> op: &&\n");
+
+    // Parse the RHS expression
+    const ExprId rhs = expression(self);
+    POISON(rhs);
+    LOG(">> good rhs\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_LOGICAL,
+        .data = { .exprLogical = { lhs, rhs, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+ExprId expression(Parser *self) { return logicalAnd(self); }
 
 // -------------------------------------------------------------------------- //
 // MARK: Parser API
@@ -540,7 +820,7 @@ bool ParserIsValid(const Parser *self) {
 }
 
 void Parse(Parser *self, bool *success) {
-    ExprId expr = parseExpr(self);
+    ExprId expr = expression(self);
     if (expr != NULL_AST_ID) {
         *success = false;
         return;
