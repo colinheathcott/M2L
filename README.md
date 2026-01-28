@@ -1,4 +1,6 @@
-# Dagni
+# M2L
+
+> "Mathematical Modeling Language"
 
 A programming language made for scientific computing, simulation, statistical modeling, and data science.
 
@@ -51,10 +53,10 @@ A programming language made for scientific computing, simulation, statistical mo
     - [x] Postfix
   - [x] Binary Expressions
     - [x] Arithmetic
-    - [ ] Comparison
-    - [ ] Logical
-    - [ ] Equality
-    - [ ] Assignment
+    - [x] Comparison
+    - [x] Logical
+    - [x] Equality
+    - [x] Assignment
 - [ ] Statements
   - [ ] Bindings
   - [ ] Control Flow

@@ -1,0 +1,52 @@
+module io {
+  import builtin;
+  import runtime;
+
+  pub Display :: auto trait Display {
+    display :: function (self) -> string;
+  }
+
+  @debug
+  pub print :: function [T: Display] (str: T) -> ! {
+    runtime.handle_fatal(
+      builtin.io.write(
+        handle: builtin.io.stderr,
+        t.display())
+    );
+  }
+
+  @release
+  pub print :: function [T: Display] (str: T) -> ! {
+    runtime.handle_fatal(
+      builtin.io.write(
+        handle: builtin.io.stdout,
+        t.display())
+    );
+  }
+}
+
+Point :: class {
+  pub x: int;
+  pub y: int;
+
+  pub new :: function (x: int, y: int) -> Point {
+    return Self { x, y };
+  }
+}
+
+Point extends io::Display {
+  display :: function (self) -> string {
+    return `({self.x}, {self.y})`;
+  }
+}
+
+b :: Point::new(1, 2);
+a := Point::new(0, 0);
+
+io.print(a);
+io.print(b);
+
+b.x, b.y = a.x, a.y;
+
+io.print(a);
+io.print(b);

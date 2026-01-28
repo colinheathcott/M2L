@@ -8,7 +8,7 @@ BUILD_DIR = build
 FILES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/**/*.c)
 OBJECTS := $(FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
-BINARY = dagni
+BINARY = m2l
 
 all: $(BINARY)
 
