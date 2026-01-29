@@ -26,7 +26,7 @@
     X(TK_MIN_MIN, "MIN_MIN")                                                   \
     X(TK_STAR_STAR, "STAR_STAR")                                               \
     X(TK_PLUS_EQ, "PLUS_EQ")                                                   \
-    X(TK_MINUS_EQ, "MINUS_EQ")                                                 \
+    X(TK_MIN_EQ, "MIN_EQ")                                                     \
     X(TK_STAR_EQ, "STAR_EQ")                                                   \
     X(TK_STAR_STAR_EQ, "STAR_STAR_EQ")                                         \
     X(TK_SLASH_SLASH, "SLASH_SLASH")                                           \

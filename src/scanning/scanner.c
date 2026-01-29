@@ -303,7 +303,7 @@ static void scanToken(Scanner *self) {
             kind = TK_MIN_MIN;
         } else if (expect(self, '=')) {
             length++;
-            kind = TK_MINUS_EQ;
+            kind = TK_MIN_EQ;
         } else if (expect(self, '>')) {
             length++;
             kind = TK_ARROW;

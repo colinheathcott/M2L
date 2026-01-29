@@ -156,6 +156,18 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         printf(")\n");
         return;
     }
+    case EXPR_ASSIGN: {
+        printf("assign(%s,\n", expr->data.exprAssign.op);
+        
+        indent(self);
+        AstPrintExpr(self, expr->data.exprAssign.lhs);
+        AstPrintExpr(self, expr->data.exprAssign.rhs);
+        dedent(self);
+
+        SPACES(self->indent);
+        printf(")\n");
+        return;
+    }
     default: {
         printf("that expression kind is not yet implemented");
     }

@@ -778,7 +778,67 @@ ExprId logicalAnd(Parser *self) {
     return AstExprPush(self->ast, &expr);
 }
 
-ExprId expression(Parser *self) { return logicalAnd(self); }
+// MARK: expr: assignment()
+
+ExprId assignment(Parser *self) {
+    LOG("assignment()\n");
+    const Span startSpan = get(self, 0)->span;
+
+    const ExprId assignee = logicalAnd(self);
+    POISON(assignee);
+
+    //
+    // Look for a binary infix operator BEFORE the RHS is parsed
+    //
+    const char *op;
+    switch (get(self, 0)->kind) {
+    case TK_EQ:
+        LOG(">> op: =\n");
+        op = "=";
+        break;
+    case TK_PLUS_EQ:
+        LOG(">> op: +=\n");
+        op = "+=";
+        break;
+    case TK_MIN_EQ:
+        LOG(">> op: -=\n");
+        op = "-=";
+        break;
+    case TK_STAR_EQ:
+        LOG(">> op: *=\n");
+        op = "*=";
+        break;
+    case TK_SLASH_EQ:
+        LOG(">> op: /=\n");
+        op = "/=";
+        break;
+    default:
+        return assignee;
+    }
+    
+    next(self, 1);
+
+    // Parse the value expression
+    const ExprId value = expression(self);
+    POISON(value);
+    LOG(">> good value\n");
+
+    //
+    // Complete the expression
+    //
+    const Span endSpan = getBack(self, 1)->span;
+    const Expression expr = {
+        .span = SpanMerge(&startSpan, &endSpan),
+        .kind = EXPR_ASSIGN,
+        .data = { .exprAssign = { assignee, value, op } }
+    };
+
+    // Advance and return
+    next(self, 1);
+    return AstExprPush(self->ast, &expr);
+}
+
+ExprId expression(Parser *self) { return assignment(self); }
 
 // -------------------------------------------------------------------------- //
 // MARK: Parser API

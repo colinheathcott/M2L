@@ -18,7 +18,7 @@
 int main(int argc, char **argv) {
     InitConsoleColors();
 
-    const Source source = SourceNewFromData("x && x > 5");
+    const Source source = SourceNewFromData("x = y");
     DiagEngine de = DENew();
     TokenList  tl = TLNew();
     
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     printf("Expr Count: %zu\n", parser.ast->exprs.count);
 
     AstPrinter astPrinter = AstPrinterNew(&source, &ast);
-    AstPrintExpr(&astPrinter, 5);
+    AstPrintExpr(&astPrinter, 3);
 
     return 0;
 }
