@@ -11,7 +11,8 @@ A programming language made for scientific computing, simulation, statistical mo
     - [ ] Read from file
     - [x] Static source from string
     - [x] Substrings
-- [ ] Interner (?)
+- [ ] ~~Interner (?)~~
+  - [x] Not needed, used span-based Substring instead
 
 ## Scanning
 
@@ -82,4 +83,5 @@ A programming language made for scientific computing, simulation, statistical mo
 ## Backlog
 
 - [ ] Write safe fatal error and diagnostic raiser for violated invariants.
-- [ ] Document things that are missing documentation.
+- [x] Document things that are missing documentation.
+- [ ] Consider making further AST node size optimizations IF there are problems with AST traversal at runtime and huge cache misses.

@@ -121,11 +121,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         return;
     }
     case EXPR_COMPARE: {
-        printf("compare(%s,\n", expr->data.exprCompare.op);
+        printf("compare(%s,\n", expr->data.exprBinary.op);
         
         indent(self);
-        AstPrintExpr(self, expr->data.exprCompare.lhs);
-        AstPrintExpr(self, expr->data.exprCompare.rhs);
+        AstPrintExpr(self, expr->data.exprBinary.lhs);
+        AstPrintExpr(self, expr->data.exprBinary.rhs);
         dedent(self);
 
         SPACES(self->indent);
@@ -133,11 +133,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         return;
     }
     case EXPR_EQUALITY: {
-        printf("equality(%s,\n", expr->data.exprEquality.op);
+        printf("equality(%s,\n", expr->data.exprBinary.op);
         
         indent(self);
-        AstPrintExpr(self, expr->data.exprEquality.lhs);
-        AstPrintExpr(self, expr->data.exprEquality.rhs);
+        AstPrintExpr(self, expr->data.exprBinary.lhs);
+        AstPrintExpr(self, expr->data.exprBinary.rhs);
         dedent(self);
 
         SPACES(self->indent);
@@ -145,11 +145,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         return;
     }
     case EXPR_LOGICAL: {
-        printf("logical(%s,\n", expr->data.exprLogical.op);
+        printf("logical(%s,\n", expr->data.exprBinary.op);
         
         indent(self);
-        AstPrintExpr(self, expr->data.exprLogical.lhs);
-        AstPrintExpr(self, expr->data.exprLogical.rhs);
+        AstPrintExpr(self, expr->data.exprBinary.lhs);
+        AstPrintExpr(self, expr->data.exprBinary.rhs);
         dedent(self);
 
         SPACES(self->indent);
@@ -157,11 +157,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         return;
     }
     case EXPR_ASSIGN: {
-        printf("assign(%s,\n", expr->data.exprAssign.op);
+        printf("assign(%s,\n", expr->data.exprBinary.op);
         
         indent(self);
-        AstPrintExpr(self, expr->data.exprAssign.lhs);
-        AstPrintExpr(self, expr->data.exprAssign.rhs);
+        AstPrintExpr(self, expr->data.exprBinary.lhs);
+        AstPrintExpr(self, expr->data.exprBinary.rhs);
         dedent(self);
 
         SPACES(self->indent);

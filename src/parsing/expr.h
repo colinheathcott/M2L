@@ -6,9 +6,18 @@
 #include "../common/source.h"
 #include <stdint.h>
 
+// -------------------------------------------------------------------------- //
+// MARK: Components
+// -------------------------------------------------------------------------- //
+
 typedef struct ExprCall {
     ExprId callee;
-    List   args; // List<ExprId>
+    
+    // Index into the args vector
+    size_t argid;
+    
+    // Number of args
+    size_t argc;
 } ExprCall;
 
 typedef struct ExprUnary {
@@ -22,10 +31,9 @@ typedef struct ExprBinary {
     const char *op;
 } ExprBinary;
 
-typedef struct ExprBinary ExprLogical;
-typedef struct ExprBinary ExprCompare;
-typedef struct ExprBinary ExprEquality;
-typedef struct ExprBinary ExprAssign;
+// -------------------------------------------------------------------------- //
+// MARK: Variants
+// -------------------------------------------------------------------------- //
 
 #define AST_EXPR_LIST                                                          \
     X(EXPR_SYMBOL,   "EXPR_SYMBOL")                                            \
@@ -51,6 +59,12 @@ typedef enum ExprKind {
 // Returns the expression kind name as a string.
 const char *ExprKindStr(const ExprKind kind);
 
+// -------------------------------------------------------------------------- //
+// MARK: Expression
+// -------------------------------------------------------------------------- //
+
+// Holds some data for an expression. Which variant to use is determined by the
+// `kind` of the expression.
 typedef union ExprData {
     Substring    exprSymbol;
     int64_t      exprInt;
@@ -60,15 +74,17 @@ typedef union ExprData {
     ExprCall     exprCall;
     ExprUnary    exprUnary;
     ExprBinary   exprBinary;
-    ExprLogical  exprLogical;
-    ExprCompare  exprCompare;
-    ExprEquality exprEquality;
-    ExprAssign   exprAssign;
 } ExprData;
 
+// Holds the data for one AST expression.
 typedef struct Expression {
+    // The source code span of this expression.
     const Span span;
+
+    // The variant of this expression.
     const ExprKind kind;
+
+    // The underlying data for the expression.
     const ExprData data;
 } Expression;
 
@@ -76,7 +92,8 @@ typedef struct Expression {
 // and returns the index of said expression in the list.
 ExprId AstExprPush(Ast *ast, const Expression *expr);
 
+// Returns te expression given by the provided index. Will fatally error if
+// the index is invalid or out of bounds.
 Expression *AstExprGet(const Ast *self, ExprId id);
-
 
 #endif

@@ -642,7 +642,7 @@ ExprId comparison(Parser *self) {
     const Expression expr = {
         .span = SpanMerge(&startSpan, &endSpan),
         .kind = EXPR_COMPARE,
-        .data = { .exprCompare = { lhs, rhs, op } }
+        .data = { .exprBinary = { lhs, rhs, op } }
     };
 
     // Advance and return
@@ -690,7 +690,7 @@ ExprId equality(Parser *self) {
     const Expression expr = {
         .span = SpanMerge(&startSpan, &endSpan),
         .kind = EXPR_EQUALITY,
-        .data = { .exprEquality = { lhs, rhs, op } }
+        .data = { .exprBinary = { lhs, rhs, op } }
     };
 
     // Advance and return
@@ -730,7 +730,7 @@ ExprId logicalOr(Parser *self) {
     const Expression expr = {
         .span = SpanMerge(&startSpan, &endSpan),
         .kind = EXPR_LOGICAL,
-        .data = { .exprLogical = { lhs, rhs, op } }
+        .data = { .exprBinary = { lhs, rhs, op } }
     };
 
     // Advance and return
@@ -770,7 +770,7 @@ ExprId logicalAnd(Parser *self) {
     const Expression expr = {
         .span = SpanMerge(&startSpan, &endSpan),
         .kind = EXPR_LOGICAL,
-        .data = { .exprLogical = { lhs, rhs, op } }
+        .data = { .exprBinary = { lhs, rhs, op } }
     };
 
     // Advance and return
@@ -830,7 +830,7 @@ ExprId assignment(Parser *self) {
     const Expression expr = {
         .span = SpanMerge(&startSpan, &endSpan),
         .kind = EXPR_ASSIGN,
-        .data = { .exprAssign = { assignee, value, op } }
+        .data = { .exprBinary = { assignee, value, op } }
     };
 
     // Advance and return

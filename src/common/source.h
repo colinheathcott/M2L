@@ -84,8 +84,11 @@ typedef struct Span {
 // Use `SubstringIsNull()` to confirm.
 Substring SpanSubstring(const Span *span);
 
+// Maximally merges two spans. Uses the smaller of the two offsets and
+// length that points to the largest end index of the two spans.
 Span SpanMerge(const Span *lhs, const Span *rhs);
 
+// Returns the end index of the span.
 size_t SpanEnd(const Span *span);
 
 #endif
