@@ -46,8 +46,9 @@ bool ParserIsValid(const Parser *self);
 // MARK: Testing Interface
 // -------------------------------------------------------------------------- //
 
-#ifdef M2l_TEST_IMPL
+#ifdef M2L_TEST_IMPL
 ExprId expression(Parser *self);
+ExprId call(Parser *self);
 #endif
 
 #endif

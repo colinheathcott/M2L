@@ -239,7 +239,7 @@ ExprId atom(Parser *self) {
     // integer
     // ---------------------------- //
     case TK_INT: {
-        LOG(">> int\n");
+        LOG(". int\n");
         Diagnostic diag = {0};
         int64_t    value = 0;
 
@@ -263,7 +263,7 @@ ExprId atom(Parser *self) {
     // float
     // ---------------------------- //
     case TK_FLOAT: {
-        LOG(">> float\n");
+        LOG(". float\n");
         Diagnostic diag  = {0};
         double     value = 0;
 
@@ -287,7 +287,7 @@ ExprId atom(Parser *self) {
     // string
     // ---------------------------- //
     case TK_STR: {
-        LOG(">> str\n");
+        LOG(". str\n");
         Substring substring = SpanSubstring(&span);
         if (SubstringIsNull(&substring)) {
             const Diagnostic diag = DiagNew(
@@ -337,7 +337,7 @@ ExprId atom(Parser *self) {
     // symbol
     // ---------------------------- //
     case TK_SYMBOL: {
-        LOG(">> symbol\n");
+        LOG(". symbol\n");
         const Substring symbol = SpanSubstring(&span);
         if (SubstringIsNull(&symbol)) {
             const Diagnostic diag = DiagNew(
@@ -363,7 +363,7 @@ ExprId atom(Parser *self) {
     // booleans
     // ---------------------------- //
     case TK_TRUE: {
-        LOG(">> true\n");
+        LOG(". true\n");
         const Expression expr = {
             .span = span,
             .kind = EXPR_BOOL,
@@ -375,7 +375,7 @@ ExprId atom(Parser *self) {
         return AstExprPush(self->ast, &expr);
     }
     case TK_FALSE: {
-        LOG(">> false\n");
+        LOG(". false\n");
         const Expression expr = {
             .span = span,
             .kind = EXPR_BOOL,
@@ -388,7 +388,7 @@ ExprId atom(Parser *self) {
     }
 
     default: {
-        LOG(">> no atom found!\n");
+        LOG(". no atom found!\n");
         const Diagnostic diag = DiagNew(
             ERR_INVALID_SYNTAX,
             "expected an atom",
@@ -403,6 +403,45 @@ ExprId atom(Parser *self) {
     next(self, 1);
     return NULL_AST_ID;
 }
+
+// MARK: expr: call()
+
+ExprId call(Parser *self) {
+    LOG("call()\n");
+    const TokenKind kind = get(self, 0)->kind;
+    const Span      span = get(self, 0)->span;
+
+    ExprId callee = atom(self);
+    POISON(callee);
+    
+    //
+    // Look for the opening of a function call
+    //
+    if (get(self, 1)->kind == TK_LPAR) {
+        int argc  = 0;
+        int argid = 0;
+
+        // Eat the LPAR
+        next(self, 1);
+
+        bool parsingArgs = true;
+        while (parsingArgs) {
+            LOG(". parsing args\n");
+            
+
+
+
+
+        }
+
+
+    }
+
+    //
+    // If there is not a function call, then return the expr up the call stack
+    //
+    return callee;
+}   
 
 // MARK: expr: postfix()
 
@@ -455,19 +494,19 @@ ExprId prefix(Parser *self) {
     const char *op;
     switch (kind) {
     case TK_PLUS_PLUS:
-        LOG(">> op: ++\n");
+        LOG(". op: ++\n");
         op = "++";
         break;
     case TK_MIN_MIN:
-        LOG(">> op: --\n");
+        LOG(". op: --\n");
         op = "--";
         break;
     case TK_BANG:
-        LOG(">> op: !\n");
+        LOG(". op: !\n");
         op = "!";
         break;
     case TK_MIN:
-        LOG(">> op: -\n");
+        LOG(". op: -\n");
         op = "-";
         break;
     default:
@@ -481,7 +520,7 @@ ExprId prefix(Parser *self) {
     //
     ExprId operand = postfix(self);
     POISON(operand);
-    LOG(">> good operand\n");
+    LOG(". good operand\n");
 
     //
     // Complete the expression
@@ -513,11 +552,11 @@ ExprId factor(Parser *self) {
     const char *op;
     switch (get(self, 0)->kind) {
     case TK_STAR:
-        LOG(">> op: *\n");
+        LOG(". op: *\n");
         op = "*";
         break;
     case TK_SLASH:
-        LOG(">> op: /\n");
+        LOG(". op: /\n");
         op = "/";
         break;
     default:
@@ -529,7 +568,7 @@ ExprId factor(Parser *self) {
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -561,11 +600,11 @@ ExprId term(Parser *self) {
     const char *op;
     switch (get(self, 0)->kind) {
     case TK_PLUS:
-        LOG(">> op: +\n");
+        LOG(". op: +\n");
         op = "+";
         break;
     case TK_MIN:
-        LOG(">> op: -\n");
+        LOG(". op: -\n");
         op = "-";
         break;
     default:
@@ -577,7 +616,7 @@ ExprId term(Parser *self) {
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -609,19 +648,19 @@ ExprId comparison(Parser *self) {
     const char *op;
     switch (get(self, 0)->kind) {
     case TK_LT:
-        LOG(">> op: <\n");
+        LOG(". op: <\n");
         op = "<";
         break;
     case TK_LT_EQ:
-        LOG(">> op: <=\n");
+        LOG(". op: <=\n");
         op = "<=";
         break;
     case TK_GT:
-        LOG(">> op: >\n");
+        LOG(". op: >\n");
         op = ">";
         break;
     case TK_GT_EQ:
-        LOG(">> op: >=\n");
+        LOG(". op: >=\n");
         op = ">=";
         break;
     default:
@@ -633,7 +672,7 @@ ExprId comparison(Parser *self) {
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -665,11 +704,11 @@ ExprId equality(Parser *self) {
     const char *op;
     switch (get(self, 0)->kind) {
     case TK_EQ_EQ:
-        LOG(">> op: ==\n");
+        LOG(". op: ==\n");
         op = "==";
         break;
     case TK_BANG_EQ:
-        LOG(">> op: !=\n");
+        LOG(". op: !=\n");
         op = "!=";
         break;
     default:
@@ -681,7 +720,7 @@ ExprId equality(Parser *self) {
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -716,12 +755,12 @@ ExprId logicalOr(Parser *self) {
     const char *op = "||";
     next(self, 1);
 
-    LOG(">> op: ||\n");
+    LOG(". op: ||\n");
 
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -756,12 +795,12 @@ ExprId logicalAnd(Parser *self) {
     const char *op = "&&";
     next(self, 1);
 
-    LOG(">> op: &&\n");
+    LOG(". op: &&\n");
 
     // Parse the RHS expression
     const ExprId rhs = expression(self);
     POISON(rhs);
-    LOG(">> good rhs\n");
+    LOG(". good rhs\n");
 
     //
     // Complete the expression
@@ -793,23 +832,23 @@ ExprId assignment(Parser *self) {
     const char *op;
     switch (get(self, 0)->kind) {
     case TK_EQ:
-        LOG(">> op: =\n");
+        LOG(". op: =\n");
         op = "=";
         break;
     case TK_PLUS_EQ:
-        LOG(">> op: +=\n");
+        LOG(". op: +=\n");
         op = "+=";
         break;
     case TK_MIN_EQ:
-        LOG(">> op: -=\n");
+        LOG(". op: -=\n");
         op = "-=";
         break;
     case TK_STAR_EQ:
-        LOG(">> op: *=\n");
+        LOG(". op: *=\n");
         op = "*=";
         break;
     case TK_SLASH_EQ:
-        LOG(">> op: /=\n");
+        LOG(". op: /=\n");
         op = "/=";
         break;
     default:
@@ -821,7 +860,7 @@ ExprId assignment(Parser *self) {
     // Parse the value expression
     const ExprId value = expression(self);
     POISON(value);
-    LOG(">> good value\n");
+    LOG(". good value\n");
 
     //
     // Complete the expression

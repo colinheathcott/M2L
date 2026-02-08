@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "../common/list.h"
+#include "../common/source.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -21,6 +22,16 @@ typedef size_t StmtId;
 typedef size_t DeclId;
 
 // -------------------------------------------------------------------------- //
+// MARK: Non-Hierarchy Nodes
+// -------------------------------------------------------------------------- //
+
+typedef struct Argument {
+    bool      hasLabel;
+    Substring label;
+    ExprId    value;
+} Argument;
+
+// -------------------------------------------------------------------------- //
 // MARK: AST
 // -------------------------------------------------------------------------- //
 
@@ -32,7 +43,7 @@ typedef struct Ast {
     List decls;  // `List<Declaration>`
     List root;   // `List<Declaration>` (ordered)
     // --------- Side Tables ---------
-    List args;   // `List<ExprId>`
+    List args;   // `List<Argument>`
     List params; // `List<ExprId>`
 } Ast;
 

@@ -49,6 +49,7 @@ A programming language made for scientific computing, simulation, statistical mo
     - [x] Strings
     - [x] Booleans
     - [x] Symbols
+  - [ ] Function Calls
   - [x] Unary Expressions
     - [x] Prefix
     - [x] Postfix
