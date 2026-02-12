@@ -23,7 +23,7 @@ List ListNew(size_t size, size_t capacity) {
     {
         return NULL_LIST;
     }
-    
+
     // Attempt allocate
     void *data = (void *)malloc(size * capacity);
     if (!data) {
@@ -39,6 +39,20 @@ List ListNew(size_t size, size_t capacity) {
     };
 }
 
+void ListDumpInfo(FILE *handle, const List *self) {
+    if (!handle || !self) {
+        fprintf(
+            stderr,
+            "<ListDumpInfo(): invalid list or handle\n"
+        );
+        return;
+    }
+    fprintf(handle, "Dumping list info:\n");
+    fprintf(handle, "  Size: %zu\n", self->size);
+    fprintf(handle, "  Count: %zu\n", self->count);
+    fprintf(handle, "  Capacity: %zu\n", self->capacity);
+}
+
 void *ListGet(const List *self, size_t i) {
     if (!ListIsValid(self) || i >= self->count) {
         fprintf(
@@ -47,7 +61,7 @@ void *ListGet(const List *self, size_t i) {
         );
         return NULL;
     }
-        
+
     return (char *)self->data + (i * self->size);
 }
 
@@ -73,7 +87,7 @@ ListResult ListPush(List *self, const void *item) {
         return LIST_RES_NULLPTR;
     }
     ListResult res = LIST_RES_OK;
-    
+
     //
     // Grow (if needed)
     //
@@ -84,20 +98,20 @@ ListResult ListPush(List *self, const void *item) {
             fprintf(stderr, "<ListNew(): overflow (1)>\n");
             return LIST_RES_OVERFLOW;
         }
-            
+
 
         // Update the capacity and realloc
         size_t newCapacity = self->capacity * GROWTH_FACTOR;
-        
+
         // Check for overflow again
         if (mulWillOverflowSizet(newCapacity, self->size)) {
             fprintf(stderr, "<ListNew(): overflow (2)>\n");
             return LIST_RES_OVERFLOW;
         }
-            
+
         // Reallocate
         void *newData = realloc(self->data, newCapacity * self->size);
-        
+
         // Check for errors with the allocation and update the List
         if (!newData) {
             fprintf(stderr, "<ListNew(): allocation failure>\n");
@@ -110,11 +124,11 @@ ListResult ListPush(List *self, const void *item) {
 
     // Now actually append the thing
     void *dest = (char *)self->data + (self->count * self->size);
-    
+
     // Copy the item into the List
     memcpy(dest, item, self->size);
     self->count++;
-    
+
     // Return the result of this allocation
     return res;
 }

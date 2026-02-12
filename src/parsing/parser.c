@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "../common/list.h"
+#include "../scanning/token.h"
 #include "ast.h"
 #include "expr.h"
 #include <assert.h>
@@ -13,6 +14,12 @@
 
 #define POISON(id) if ((id) == NULL_AST_ID) return NULL_AST_ID
 
+#define STATUS(parser, msg)                                                    \
+    fprintf(stderr, "STATUS: '%s'", (msg));                                    \
+    fprintf(stderr, "\n  GET(0): %s",TokenKindAsString(get((parser),0)->kind));\
+    fprintf(stderr, "\n  GET(1): %s",TokenKindAsString(get((parser),1)->kind));\
+    fprintf(stderr, "\n");
+
 #ifdef LOG_PARSER
 #define LOG(fmt, ...) fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
 #else
@@ -24,7 +31,7 @@
 // -------------------------------------------------------------------------- //
 
 // Note: In the future, I may write a custom method to replace the length + 1
-// position with zero while the conversion is taking place, to trick strtoll 
+// position with zero while the conversion is taking place, to trick strtoll
 // into thinking there is a null terminator, then replace it with the original
 // value when its done. This would be to avoid heap allocations.
 bool convertIntLiteral(const Span *span, int64_t *valout, Diagnostic *errout) {
@@ -175,7 +182,7 @@ Token *getBack(const Parser *self, size_t k) {
     return (Token *)ListGet(&self->tokenList->tokens, self->cursor - k);
 }
 
-// Advances the parser `k` tokens ahead. Will automatically prevent `cursor` 
+// Advances the parser `k` tokens ahead. Will automatically prevent `cursor`
 // from being greater than the token list count.
 void next(Parser *self, size_t k) {
     // Prevent the cursor from overflowing the length of the token list
@@ -191,7 +198,7 @@ void next(Parser *self, size_t k) {
 // If not, will push a diagnostic and use `what` in the error report.
 bool expect(Parser *self, size_t k, TokenKind kind, const char *what) {
     Token *tk = get(self, k);
-    
+
     if (tk->kind == kind) {
         next(self, 1);
         return true;
@@ -213,6 +220,15 @@ bool expect(Parser *self, size_t k, TokenKind kind, const char *what) {
 
     DEPush(self->diagEngine, &diag);
     return false;
+}
+
+// Skips tokens until an semicolon is found, or the EOF token is reached.
+// Intended to be used to avoid causing problems when complicated parsers run
+// into errors that could propagate throughout entire AST structures.
+void recover(Parser *self) {
+    while (get(self, 0)->kind != TK_EOF && get(self, 0)->kind != TK_SEMICOLON) {
+        next(self, 1);
+    }
 }
 
 // -------------------------------------------------------------------------- //
@@ -298,7 +314,7 @@ ExprId atom(Parser *self) {
             DEPush(self->diagEngine, &diag);
             break; // return null
         }
-        
+
         //
         // Update the span of the substring so that we exclude the `"`.
         //
@@ -312,8 +328,8 @@ ExprId atom(Parser *self) {
             );
             DEPush(self->diagEngine, &diag);
             break; // return null
-        } 
-        
+        }
+
         // Make of a copy of this pointer so I can increment it without mutating
         // the original substring.
         const char *ptrcpy = substring.data;
@@ -409,45 +425,147 @@ ExprId atom(Parser *self) {
 ExprId call(Parser *self) {
     LOG("call()\n");
     const TokenKind kind = get(self, 0)->kind;
-    const Span      span = get(self, 0)->span;
+    const Span startSpan = get(self, 0)->span;
 
     ExprId callee = atom(self);
     POISON(callee);
-    
+
     //
     // Look for the opening of a function call
     //
-    if (get(self, 1)->kind == TK_LPAR) {
-        int argc  = 0;
-        int argid = 0;
+    if (get(self, 0)->kind == TK_LPAR) {
+        STATUS(self, "found fn call");
+        size_t argc  = 0;
+        size_t argid = self->ast->args.count;
+        printf(". argid initialized to: %zu\n", argid);
 
         // Eat the LPAR
         next(self, 1);
 
-        bool parsingArgs = true;
-        while (parsingArgs) {
-            LOG(". parsing args\n");
-            
+        // This condition will skip the whole loop if the thing immediately
+        // following the LPAR is an RPAR (i.e. the case where there is no args)
+        bool parsing = get(self, 0)->kind != TK_RPAR;
 
+        STATUS(self, "before entering loop");
 
+        //
+        // Parse arguments
+        //
+        while (parsing) {
+            LOG(". parsing arg\n");
+            STATUS(self, "after entering loop");
 
+            bool   hasLabel = false;
+            Substring label = NULL_SUBSTRING;
+            const Span argSpan = get(self, 0)->span;
 
-        }
+            //
+            // Labeled Argument
+            //
+            if (get(self, 0)->kind == TK_SYMBOL
+                && get(self, 1)->kind == TK_COLON
+            ) {
+                LOG(".. arg has a label\n");
+                STATUS(self, "labeled argument");
 
+                const Substring substring = SpanSubstring(&argSpan);
+                if (SubstringIsNull(&substring)) {
+                    fprintf(
+                        stderr,
+                        "<call(): null substring in argument label>\n"
+                    );
+                }
 
+                // Eat the colon and go to what's after it
+                next(self, 2);
+
+                // Bullshit to work around const members of Substring
+                memcpy(&label, &substring, sizeof(Substring));
+                hasLabel = true;
+            }
+
+            //
+            // Argument expression
+            //
+            const ExprId value = expression(self);
+            STATUS(self, "after arg expr parse");
+
+            // COMMA -> keep parsing
+            if (get(self, 0)->kind == TK_COMMA) {
+                next(self, 1);
+
+            // RPAR -> quit parsing
+            } else if (get(self, 0)->kind == TK_RPAR) {
+                next(self, 1);
+                parsing = false;
+
+            // Anything else -> error
+            } else {
+                STATUS(self, "whoops, error!");
+                const Diagnostic diag = DiagNew(
+                    ERR_INVALID_SYNTAX,
+                    "expected either `,` to continue arguments or `)` to end"
+                    " function call",
+                    (DiagReport) { get(self, 0)->span, "" }
+                );
+                DEPush(self->diagEngine, &diag);
+                recover(self);
+                return NULL_AST_ID;
+            }
+
+            // Don't add this arguemnt if it's invalid
+            if (value == NULL_AST_ID) {
+                STATUS(self, "null arg expr");
+                continue;
+            }
+
+            // Compute the span of the argument
+            const Span previousSpan = getBack(self, 1)->span;
+            const Span span = SpanMerge(&argSpan, &previousSpan);
+
+            printf("valueId: %zu\n", value);
+
+            Argument arg = (Argument) {
+                .span = span,
+                .hasLabel = hasLabel,
+                .label = label,
+                .value = value,
+            };
+
+            // Push the argument to the list
+            ListPush(&self->ast->args, &arg);
+            argc++;
+        } // end with cursor -> RPAR
+
+        STATUS(self, "after loop");
+        printf("!argid: %zu, !argc: %zu\n", argid, argc);
+
+        // Put it all together
+        const Span *endSpan = &get(self, 0)->span;
+        //                     ^~~~~~~~~~~ this should point to the RPAR
+        const Expression expr = {
+            .span = SpanMerge(&startSpan, endSpan),
+            .kind = EXPR_CALL,
+            .data = { .exprCall =
+                { .callee = callee, .argc = argc, .argid = argid } }
+        };
+
+        // Advance and return
+        next(self, 1);
+        return AstExprPush(self->ast, &expr);
     }
 
     //
     // If there is not a function call, then return the expr up the call stack
     //
     return callee;
-}   
+}
 
 // MARK: expr: postfix()
 
 ExprId postfix(Parser *self) {
     const Span startSpan = get(self, 0)->span;
-    ExprId operand = atom(self);
+    ExprId operand = call(self);
     POISON(operand);
 
     //
@@ -533,7 +651,7 @@ ExprId prefix(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -562,7 +680,7 @@ ExprId factor(Parser *self) {
     default:
         return lhs;
     }
-    
+
     next(self, 1);
 
     // Parse the RHS expression
@@ -581,7 +699,7 @@ ExprId factor(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -610,7 +728,7 @@ ExprId term(Parser *self) {
     default:
         return lhs;
     }
-    
+
     next(self, 1);
 
     // Parse the RHS expression
@@ -629,7 +747,7 @@ ExprId term(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -666,7 +784,7 @@ ExprId comparison(Parser *self) {
     default:
         return lhs;
     }
-    
+
     next(self, 1);
 
     // Parse the RHS expression
@@ -685,7 +803,7 @@ ExprId comparison(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -714,7 +832,7 @@ ExprId equality(Parser *self) {
     default:
         return lhs;
     }
-    
+
     next(self, 1);
 
     // Parse the RHS expression
@@ -733,7 +851,7 @@ ExprId equality(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -773,7 +891,7 @@ ExprId logicalOr(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -813,7 +931,7 @@ ExprId logicalAnd(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 
@@ -854,7 +972,7 @@ ExprId assignment(Parser *self) {
     default:
         return assignee;
     }
-    
+
     next(self, 1);
 
     // Parse the value expression
@@ -873,7 +991,7 @@ ExprId assignment(Parser *self) {
     };
 
     // Advance and return
-    next(self, 1);
+    // next(self, 1);
     return AstExprPush(self->ast, &expr);
 }
 

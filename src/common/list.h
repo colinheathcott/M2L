@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define GROWTH_FACTOR 2
 #define NULL_LIST (List) {0}
@@ -32,7 +33,7 @@ typedef enum ListResult {
 // - `count` the number of elements in the list now. Remember when indexing that
 // this is always `i + 1`.
 // - `size` the size of each element in the list.
-// 
+//
 // `List` uses the `ListResult` enum for many functions.
 // `List` takes pointers when appending, but will copy the actual bytes--items
 // have the same lifetime as the list itself, even if the original data you
@@ -52,7 +53,9 @@ typedef struct List {
 // Remember to use `ListIsValid` after creating a list!
 List ListNew(size_t size, size_t capacity);
 
-// Used to fetch the `i` th element from a list. This will return the memory 
+void ListDumpInfo(FILE *handle, const List *self);
+
+// Used to fetch the `i` th element from a list. This will return the memory
 // address of that item. Always check for `NULL`.
 void *ListGet(const List *self, size_t i);
 

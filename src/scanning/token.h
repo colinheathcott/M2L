@@ -79,6 +79,8 @@ typedef enum TokenKind {
     #undef X
 } TokenKind;
 
+const char *TokenKindAsString(const TokenKind tk);
+
 typedef struct Token {
     const TokenKind kind;
     const Span      span;

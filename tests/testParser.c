@@ -2,45 +2,42 @@
 
 // Test headers
 #include "test.h"
-#include "testParser.h"
+#include "testparser.h"
 
 // Lib headers
 #include "../src/parsing/parser.h"
 #include "../src/parsing/expr.h"
 #include "../src/parsing/printer.h"
 
-// Tests
-int testCall();
-
-void TestParserSuite() {
-    testCall();
+void RunParserTests() {
+    #define X(name) Test##name();
+    TESTS
+    #undef X
 }
 
-int testCall() {
+TEST(Call) {
     TestContext tctx = BEGIN("parse call");
 
-    Context ctx = scanString("add(1, 2)");
-    if (!ctx.isValid) return TEST_ERR;
+    //
+    // ---------------------- [[ PROCESSING ]] ----------------------
+    //
+    Context ctx = ContextNew("add(lhs: 1, rhs: 2)");
+    ContextScan(&ctx);
 
-    //
-    // Setup parser
-    //
     Parser parser = ParserNew(&ctx.source, &ctx.ast, &ctx.de, &ctx.tl);
-
-    //
-    // Parse input
-    //
     ExprId id = expression(&parser);
-
-    //
-    // Print the input and check
-    //
     AstPrinter astPrinter = AstPrinterNew(&ctx.source, &ctx.ast);
+
+    ListDumpInfo(stderr, &ctx.ast.args);
+    DEPrint(stderr, &ctx.de);
     AstPrintExpr(&astPrinter, id);
 
+    //
+    // ------------------------ [[ CHECKS ]] ------------------------
+    //
     Expression *expr = AstExprGet(&ctx.ast, id);
     CHECK(tctx, expr, "invalid expr");
-    CHECK(tctx, expr->kind == EXPR_CALL, "not an call");
+    CHECK(tctx, expr->kind == EXPR_CALL, "not a call");
     CHECK(tctx, expr->data.exprCall.argc == 2, "!= 2 arguments");
 
     END(tctx)

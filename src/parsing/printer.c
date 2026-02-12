@@ -38,10 +38,33 @@ bool AstPrinterIsValid(const AstPrinter *self) {
     );
 }
 
-void AstPrintExpr(AstPrinter *self, ExprId id) {    
+void AstPrintArgument(AstPrinter *self, const Argument *arg) {
+    if (!arg) {
+        printf("<invalid argument>\n");
+        return;
+    }
+
+    if (arg->hasLabel) {
+        SPACES(self->indent);
+        printf("'");
+        SubstringPrint(stdout, &arg->label);
+        printf("' (\n");
+        indent(self);
+    }
+
+    AstPrintExpr(self, arg->value);
+
+    if (arg->hasLabel) {
+        dedent(self);
+        SPACES(self->indent);
+        printf(")\n");
+    }
+}
+
+void AstPrintExpr(AstPrinter *self, ExprId id) {
     SPACES(self->indent);
     if (!self || !AstPrinterIsValid(self)) {
-        printf("<invalid AstPrinter pointer>");
+        printf("<invalid AstPrinter pointer>\n");
         return;
     }
 
@@ -83,11 +106,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     // ---------------------------- //
     case EXPR_PREFIX: {
         printf("prefix(%s\n", expr->data.exprUnary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprUnary.operand);
         dedent(self);
-        
+
         SPACES(self->indent);
         printf(")\n");
         return;
@@ -95,11 +118,11 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
 
     case EXPR_POSTFIX: {
         printf("postfix(%s\n", expr->data.exprUnary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprUnary.operand);
         dedent(self);
-        
+
         SPACES(self->indent);
         printf(")\n");
         return;
@@ -110,7 +133,7 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     // ---------------------------- //
     case EXPR_BINARY: {
         printf("binary(%s,\n", expr->data.exprBinary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
@@ -122,7 +145,7 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     }
     case EXPR_COMPARE: {
         printf("compare(%s,\n", expr->data.exprBinary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
@@ -134,7 +157,7 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     }
     case EXPR_EQUALITY: {
         printf("equality(%s,\n", expr->data.exprBinary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
@@ -146,7 +169,7 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     }
     case EXPR_LOGICAL: {
         printf("logical(%s,\n", expr->data.exprBinary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
@@ -158,7 +181,7 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
     }
     case EXPR_ASSIGN: {
         printf("assign(%s,\n", expr->data.exprBinary.op);
-        
+
         indent(self);
         AstPrintExpr(self, expr->data.exprBinary.lhs);
         AstPrintExpr(self, expr->data.exprBinary.rhs);
@@ -168,8 +191,51 @@ void AstPrintExpr(AstPrinter *self, ExprId id) {
         printf(")\n");
         return;
     }
+
+
+    case EXPR_CALL: {
+        printf("call(\n");
+
+        indent(self);
+        AstPrintExpr(self, expr->data.exprCall.callee);
+        SPACES(self->indent);
+
+        // Don't print bullshit if there's no arguments.
+        if (expr->data.exprCall.argc == 0) {
+            printf("args()\n");
+            dedent(self);
+            SPACES(self->indent);
+            printf(")\n");
+            return;
+        }
+
+        printf("args(\n");
+
+        indent(self);
+        for (size_t i = 0; i < expr->data.exprCall.argc; i++) {
+            size_t argIndex = expr->data.exprCall.argid + i;
+            Argument *arg = ListGet(&self->ast->args, argIndex);
+            AstPrintArgument(self, arg);
+        }
+
+        // Close args
+        dedent(self);
+        SPACES(self->indent);
+        printf(")\n");
+
+        // Close call
+        dedent(self);
+        SPACES(self->indent);
+        printf(")\n");
+
+        return;
+    }
+
     default: {
-        printf("that expression kind is not yet implemented");
+        printf(
+            "that expression kind is not yet implemented: %s\n",
+            ExprKindStr(expr->kind)
+        );
     }
     }
 }

@@ -26,9 +26,10 @@ typedef size_t DeclId;
 // -------------------------------------------------------------------------- //
 
 typedef struct Argument {
-    bool      hasLabel;
-    Substring label;
-    ExprId    value;
+    const bool hasLabel;
+    const Substring label;
+    const ExprId value;
+    const Span span;
 } Argument;
 
 // -------------------------------------------------------------------------- //
@@ -53,5 +54,7 @@ Ast AstNew();
 // Checks that every list in the AST is valid and that each one has a
 // successfully allocated sentinel on the front.
 bool AstIsValid(const Ast *self);
+
+void AstPrintArgList(const Ast *self);
 
 #endif

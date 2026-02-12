@@ -21,10 +21,10 @@ typedef struct TestContext {
         .testCode = TEST_PASS,                                                 \
         .testPoint = 1,                                                        \
         .testPointFailure = 0,                                                 \
-    };           
+    };
 
 #define END(ctx)                                                               \
-    fprintf(stderr, "%s - COMPLETE\n  %i of %i CHECKS PASSED\n  POST: %i\n",   \
+    fprintf(stderr, "%s - COMPLETE\n  %i of %i CHECKS PASSED\n  POSTED: %i\n", \
         (ctx).testName, (ctx).testPoint - (ctx).testPointFailure,              \
         (ctx).testPoint, (ctx).testCode);                                      \
     return (ctx).testCode;
@@ -40,6 +40,8 @@ typedef struct TestContext {
         (ctx).testPointFailure++;                                              \
     }
 
+#define TEST(name) int Test##name()
+
 // Lib headers
 #include "../src/common/source.h"
 #include "../src/common/diag.h"
@@ -47,13 +49,14 @@ typedef struct TestContext {
 #include "../src/parsing/ast.h"
 
 typedef struct Context {
-    const Source source;
+    Source source;
     DiagEngine de;
     TokenList  tl;
     Ast ast;
     bool isValid;
 } Context;
 
-Context scanString(const char *input);
+Context ContextNew(const char *srcData);
+void ContextScan(Context *self);
 
 #endif

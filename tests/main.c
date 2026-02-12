@@ -3,11 +3,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
-
-#include "test.h"
-#include "testParser.h"
+#include "testparser.h"
 
 int main(int argc, char **argv) {
-    TestParserSuite();
+    RunParserTests();
     return 0;
 }

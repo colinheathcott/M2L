@@ -1,7 +1,7 @@
 #include "token.h"
 #include <stdio.h>
 
-const char *stringifyTokenKind(const TokenKind tk) {
+const char *TokenKindAsString(const TokenKind tk) {
     switch (tk) {
     #define X(name, str) case name: return str;
     TOKEN_LIST
@@ -12,7 +12,7 @@ const char *stringifyTokenKind(const TokenKind tk) {
 
 void TokenPrint(FILE *ioStream, const Token *self) {
     // format: FILE:Y:X KIND 'LEXEME'
-    const char *kind = stringifyTokenKind(self->kind);
+    const char *kind = TokenKindAsString(self->kind);
     fprintf(ioStream,
         "[%s:%zu:%zu] %s '",
         self->span.src->path,
@@ -34,16 +34,16 @@ void TokenPrint(FILE *ioStream, const Token *self) {
         }
         SubstringPrint(ioStream, &substr);
     }
-    
+
     fprintf(ioStream,"'\n");
 }
 
 TokenList TLNew() {
     List tokens = ListNew(sizeof(Token), INIT_TOKEN_LIST_CAP);
-    
+
     if (!ListIsValid(&tokens))
         return (TokenList) { NULL_LIST };
-    
+
     return (TokenList) { .tokens = tokens };
 }
 

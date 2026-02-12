@@ -19,7 +19,7 @@ Ast AstNew() {
     List stmtList   = ListNew(sizeof(Expression), INIT_STMT_CAPACITY);
     List declList   = ListNew(sizeof(Expression), INIT_DECL_CAPACITY);
     List rootList   = ListNew(sizeof(Expression), INIT_ROOT_CAPACITY);
-    List argsList   = ListNew(sizeof(ExprId), INIT_ARGS_CAPACITY);
+    List argsList   = ListNew(sizeof(Argument), INIT_ARGS_CAPACITY);
     List paramsList = ListNew(sizeof(ExprId), INIT_PARAMS_CAPACITY);
 
     printf("exprs valid: %d\n", ListIsValid(&exprList));
@@ -66,7 +66,7 @@ Ast AstNew() {
 
 bool AstIsValid(const Ast *self) {
     if (!self) return false;
-    
+
     bool listsValid = (
         ListIsValid(&self->exprs)
         && ListIsValid(&self->stmts)
@@ -75,7 +75,7 @@ bool AstIsValid(const Ast *self) {
         && ListIsValid(&self->args)
         && ListIsValid(&self->params)
     );
-    
+
     bool listsHaveSentinels = (
         self->exprs.count >= 1
         && self->stmts.count >= 1
@@ -84,4 +84,12 @@ bool AstIsValid(const Ast *self) {
     );
 
     return (listsValid && listsHaveSentinels);
+}
+
+void AstPrintArgList(const Ast *self) {
+    for (size_t i = 0; i < self->args.count; i++) {
+        const Argument *arg = ListGet(&self->args, i);
+        printf("Arg(labeled: %s, value: %zu)\n",
+            arg->hasLabel ? "yes" : "no", arg->value);
+    }
 }
